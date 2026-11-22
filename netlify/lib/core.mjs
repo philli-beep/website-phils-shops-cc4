@@ -88,7 +88,7 @@ function cleanPlayerDoc(col, d) {
     if (!Array.isArray(d.items) || d.items.length > 4 || !NAME.test(d.ign || "")) return null;
     const items = [];
     for (const x of d.items) {
-      if (!x || (x.d !== "ne" && x.d !== "ow") || !Number.isFinite(x.at)) return null;
+      if (!x || !["ne", "ow", "pn", "po"].includes(x.d) || !Number.isFinite(x.at)) return null;
       items.push({ d: x.d, at: x.at, st: "p" });
     }
     return { ign: d.ign, items };
