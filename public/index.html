@@ -876,6 +876,8 @@ body:has(#pan:not([hidden])) #toasts,body:has(#viewer:not([hidden])) #toasts{opa
 .tkc .tst{align-self:flex-start;margin:12px 0 0;font-size:.8rem;font-weight:700;padding:6px 13px;border-radius:999px}
 .tkc .tst.wait{background:rgba(255,216,74,.18);color:#ffd84a}.tkc .tst.ok{background:rgba(52,224,161,.18);color:#5be9b8}.tkc .tst.no{background:rgba(255,93,115,.18);color:#ff8a9a}
 .tkc .act{margin-top:18px;width:100%;padding:15px 18px;border-radius:999px;font-size:1.02rem;font-weight:700;letter-spacing:-.01em}
+.tkc .act:not([disabled]):not(.ask){background:linear-gradient(180deg,#ffe14d,#ffc800)!important;color:#1b1500!important;border:4px solid #ffd60a!important;box-shadow:0 0 0 3px rgba(255,214,10,.28),0 10px 26px rgba(255,200,0,.28)!important;border-radius:999px}
+.tkc .act[disabled]{border:4px solid rgba(255,255,255,.12)!important}
 .tkc .act.ask{animation:tkask 1s ease-in-out infinite;background:linear-gradient(160deg,#ff9a5c,#ff5d3a)!important;color:#fff!important}
 @keyframes tkask{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
 .tkc .act[disabled]{background:rgba(255,255,255,.09)!important;color:#8b94a1!important;box-shadow:none!important;filter:none;cursor:not-allowed}
@@ -885,6 +887,10 @@ body:has(#pan:not([hidden])) #toasts,body:has(#viewer:not([hidden])) #toasts{opa
 @media(max-width:760px){.tix{grid-template-columns:1fr}.tkc .tp{font-size:2.1rem}}
 @media(prefers-reduced-motion:reduce){.tkc,.tkc .tk{transition:none}.tkc{opacity:1;transform:none}.tkc .act.ask{animation:none}}
 
+.odel{margin-top:12px;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border:0;border-radius:999px;background:rgba(255,69,58,.14);color:#ff8a82;font:600 .82rem/1 inherit;cursor:pointer;transition:background .2s,transform .2s}
+.odel:hover{background:rgba(255,69,58,.24)}.odel:active{transform:scale(.96)}.odel.ask{background:#ff453a;color:#fff}.odel:disabled{opacity:.5}
+.myr{margin-top:14px;display:grid;gap:8px}.myr h5{margin:6px 0 0;font-size:.95rem;color:#c4ccd6;font-weight:600}.myr .mr{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.06)}.myr .mr small{color:#9aa3af}
+.tkc .odel{align-self:flex-start;margin-top:10px}
 </style>
 </head>
 <body>
@@ -946,6 +952,7 @@ body:has(#pan:not([hidden])) #toasts,body:has(#viewer:not([hidden])) #toasts{opa
 <p class="hint" id="strhint" hidden style="text-align:center;margin:0 0 8px">Hier gehen nur gerade Linien: Ziehen, loslassen, neue Linie.</p>
 <div class="row" style="justify-content:center"><button class="act" type="button" id="undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>Rückgängig</button><button class="act" type="button" id="clr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>Alles löschen</button><button class="act go" type="button" id="send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>Abschicken</button></div>
 <p class="msg" id="m2" role="status" aria-live="polite"></p>
+<div class="myr" id="myr" hidden></div>
 <div class="rate" id="rate" hidden><b>Wie fandest du die Website bis jetzt?</b><div class="stars" id="stars" role="group" aria-label="Bewertung von 1 bis 5 Sternen"></div><p class="msg" id="rmsg" role="status" aria-live="polite" style="margin:0"></p></div>
 </div>
 </div></div></div></div>
@@ -1321,8 +1328,15 @@ $('#send').addEventListener('click',async function(){var m=$('#m2'),b=this;
   var r=await save(p);b.disabled=false;
   if(r==='cloud'){m.className='msg ok';m.textContent='Abgeschickt. Deine Strecke ist im Postfach angekommen.';}
   else{m.className='msg err';m.textContent='Die Strecke ist nicht angekommen. Versuch es gleich noch einmal oder sag Phil im Spiel Bescheid.';return;}
-  strokes=[];render();showRate();});
+  strokes=[];render();showRate();myRoutes();});
 
+/* Eigene Strecken */
+async function myRoutes(){var box=$('#myr');if(!box)return;var all={};lsGet().forEach(function(p){all[p.at]=p;});
+  try{var c=await cloud();if(c){var sn=await c.db.doc('routes/'+c.id).get();if(sn.exists)((sn.data()||{}).subs||[]).forEach(function(p){all[p.at]=p;});}}catch(e){}
+  var L=Object.keys(all).sort().reverse();box.textContent='';box.hidden=!L.length;if(!L.length)return;box.appendChild(eh('h5',null,'Meine abgeschickten Strecken'));
+  L.forEach(function(k){var p=all[k],row=eh('div','mr'),t=eh('div'),d=new Date(p.at);t.appendChild(eh('b',null,(p.plot||p.ign||'Strecke')));t.appendChild(eh('small',null,' '+(isNaN(d)?'':d.toLocaleDateString('de-DE')+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}))+(p.dim==='n'||p.dim==='nether'?' · Nether':'')));row.appendChild(t);
+    var b=delBtn('Löschen',async function(){lsSet(lsGet().filter(function(x){return x.at!==k;}));var c=await cloud();if(!c)return true;var ref=c.db.doc('routes/'+c.id),sn=await ref.get();if(!sn.exists)return true;var subs=((sn.data()||{}).subs||[]).filter(function(x){return x.at!==k;});if(subs.length)await ref.set({subs:subs});else await ref.delete();return true;},function(){row.remove();if(!box.querySelector('.mr'))box.hidden=true;});b.style.marginTop='0';row.appendChild(b);box.appendChild(row);});}
+myRoutes();
 /* ---------- Postfach ---------- */
 $('#plist').querySelectorAll('.ptabs [data-t]').forEach(function(b){b.addEventListener('click',function(){$('#plist').dataset.t=b.dataset.t;$('#plist').querySelectorAll('.ptabs [data-t]').forEach(function(x){x.classList.toggle('on',x===b);});});});
 function savedOk(){var m=$('#shm2');m.className='msg ok';m.textContent='Gespeichert ✓';clearTimeout(savedOk.t);savedOk.t=setTimeout(function(){if(m.textContent==='Gespeichert ✓')m.textContent='';},2500);}
@@ -1530,7 +1544,17 @@ function eh(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cl
 function ordLs(){try{return JSON.parse(localStorage.getItem('phil_orders')||'[]')}catch(e){return[]}}
 function ordLsSet(a){try{localStorage.setItem('phil_orders',JSON.stringify(a))}catch(e){}}
 async function dbq(){try{if(!window.claude||!claude.use)return null;return await claude.use('db');}catch(e){return null;}}
-function statusCard(o){var box=eh('div','ost');box.appendChild(eh('b',null,FARMS[o.farm]||'Farm'));
+function ohid(){try{return JSON.parse(localStorage.getItem('phil_ohid')||'[]')}catch(e){return[]}}
+function ohidAdd(id){try{var a=ohid();a.push(id);localStorage.setItem('phil_ohid',JSON.stringify(a.slice(-60)));}catch(e){}}
+function delBtn(label,fn,after){var b=eh('button','odel',label);b.type='button';b.addEventListener('click',async function(){
+  if(!b.classList.contains('ask')){b.classList.add('ask');b.textContent='Wirklich löschen?';clearTimeout(b._t);b._t=setTimeout(function(){b.classList.remove('ask');b.textContent=label;},4000);return;}
+  clearTimeout(b._t);b.disabled=true;b.textContent='Wird gelöscht …';var ok=false;try{ok=await fn();}catch(e){}
+  if(ok){after&&after();}else{b.disabled=false;b.classList.remove('ask');b.textContent='Löschen ging nicht. Nochmal?';}});return b;}
+async function delOrder(id){ordLsSet(ordLs().filter(function(x){return x.id!==id;}));ohidAdd(id);
+  var c=await cloud();if(!c)return true;var ref=c.db.doc('orders/'+c.id),sn=await ref.get();if(!sn.exists)return true;
+  var list=((sn.data()||{}).list||[]).filter(function(x){return x.id!==id;});if(list.length)await ref.set({list:list});else await ref.delete();return true;}
+function statusCard(o){var box=statusCard0(o);if(o.mine&&o.id){box.appendChild(delBtn('Bestellung löschen',function(){return delOrder(o.id);},function(){var p=box.parentNode;box.remove();if(p&&p.id==='ordres')$('#ordm').textContent='';var m=$('#ordm');if(m){m.className='msg ok';m.textContent='Bestellung gelöscht.';}}));}return box;}
+function statusCard0(o){var box=eh('div','ost');box.appendChild(eh('b',null,FARMS[o.farm]||'Farm'));
   if(o.state==='no'){var bd=eh('span','obad','Abgelehnt');box.appendChild(bd);box.appendChild(eh('small',null,o.eta?'Grund: '+o.eta:'Phil kann diese Bestellung gerade nicht annehmen.'));return box;}
   var idx=0;STEPS.forEach(function(s,i){if(s[0]===(o.state||'bearb'))idx=i;});
   var bar=eh('div','osteps');STEPS.forEach(function(s,i){bar.appendChild(eh('span',i<idx?'done':i===idx?'cur':'',s[1]));});box.appendChild(bar);
@@ -1564,13 +1588,16 @@ $('#ordgo').addEventListener('click',async function(){var m=$('#ordm'),n=$('#ord
   var l=ordLs();l.push(o);ordLsSet(l);var cloudOk=false;
   try{var c=await cloud();if(c){var ref=c.db.doc('orders/'+c.id),sn=await ref.get(),list=((sn.exists&&sn.data().list)||[]).slice();list.push(o);await ref.set({list:list});cloudOk=true;}}catch(e){}
   btn.disabled=false;if(!cloudOk){ordLsSet(ordLs().filter(function(x){return x.id!==o.id;}));m.className='msg err';m.textContent='Die Bestellung ist nicht angekommen. Versuch es gleich noch einmal oder sag Phil im Spiel Bescheid.';return;}m.className='msg ok';m.textContent='Bestellung abgeschickt. Hier siehst du den Stand:';
-  var r=$('#ordres');r.textContent='';r.appendChild(statusCard({farm:o.farm,state:'bearb',meet:o.meet,where:o.where}));$('#stn').value=n;});
+  var r=$('#ordres');r.textContent='';r.appendChild(statusCard({id:o.id,mine:true,farm:o.farm,state:'bearb',meet:o.meet,where:o.where}));$('#stn').value=n;});
 $('#stgo').addEventListener('click',async function(){var n=$('#stn').value.trim(),res=$('#stres');res.textContent='';
   if(!n){res.appendChild(eh('p','msg err','Gib deinen Minecraft-Namen ein.'));return;}
   var key=ordKey(n),orders=[];
   try{var db=await dbq();if(db){var sn=await db.doc('ostatus/'+key).get();if(sn.exists)orders=((sn.data()||{}).orders||[]).slice();}}catch(e){}
-  var have={};orders.forEach(function(o){have[o.id]=1;});
-  ordLs().forEach(function(o){if(ordKey(o.ign)===key&&!have[o.id])orders.push({id:o.id,farm:o.farm,state:'bearb',meet:o.meet,where:o.where});});
+  var have={},hid=ohid(),mineIds={};orders=orders.filter(function(o){return hid.indexOf(o.id)<0;});orders.forEach(function(o){have[o.id]=1;});
+  ordLs().forEach(function(o){mineIds[o.id]=1;});
+  try{var cc=await cloud();if(cc){var rr=await cc.db.doc('orders/'+cc.id).get();if(rr.exists)((rr.data()||{}).list||[]).forEach(function(o){mineIds[o.id]=1;if(ordKey(o.ign)===key&&!have[o.id]&&hid.indexOf(o.id)<0){have[o.id]=1;orders.push({id:o.id,farm:o.farm,state:'bearb',meet:o.meet,where:o.where});}});}}catch(e){}
+  ordLs().forEach(function(o){if(ordKey(o.ign)===key&&!have[o.id]&&hid.indexOf(o.id)<0)orders.push({id:o.id,farm:o.farm,state:'bearb',meet:o.meet,where:o.where});});
+  orders.forEach(function(o){if(mineIds[o.id])o.mine=true;});
   if(!orders.length){res.appendChild(eh('p','msg','Für diesen Namen habe ich noch keine Bestellung gefunden.'));return;}
   orders.forEach(function(o){res.appendChild(statusCard(o));});});
 $('#stn').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();$('#stgo').click();}});
@@ -1763,6 +1790,7 @@ function tixSay(t,bad,ok){var m=$('#tixm');if(!m)return;m.className='msg'+(bad?'
 function renderTix(){var box=$('#tix');if(!box)return;  box.querySelectorAll('.tkc').forEach(function(r){var k=r.dataset.w,b=r.querySelector('button'),st=r.querySelector('.tst');r.querySelector('.tpv').textContent=tixPr(k);r.querySelector('.stk').textContent=stk(tixPr(k));var av=r.querySelector('.avp'),on=(SHOP.tix||{})[k]!==false;av.className='avp'+(on?'':' n');av.textContent=on?'Verfügbar':'Nicht verfügbar';
     var it=TIX.mine.filter(function(x){return x.d===k;})[0],sx=it?tixSt(it):'',got=!!it&&sx!=='no',off=(SHOP.tix||{})[k]===false&&!got;
     st.hidden=!it;st.className='tst '+(sx==='ok'?'ok':sx==='p'?'wait':'no');st.textContent=sx==='ok'?'Bestätigt':sx==='p'?'Wartet auf Bestätigung':sx==='no'?'Abgelehnt':'';
+    var dl=r.querySelector('.odel');if(it&&!dl){dl=delBtn('Ticket löschen',async function(){var c=await cloud();if(!c)return false;await chPut('tix/'+c.id,function(d){return{ign:d.ign||myName,items:(d.items||[]).filter(function(y){return y.d!==k;})};});TIX.mine=TIX.mine.filter(function(y){return y.d!==k;});return true;},function(){renderTix();tixSay('Ticket gelöscht.');});r.appendChild(dl);}else if(!it&&dl)dl.remove();
     b.disabled=off||got;b.classList.remove('ask');b.textContent=sx==='ok'?'Ticket bestätigt':sx==='p'?'Bestellt':off?'Nicht verfügbar':sx==='no'?'Nochmal kaufen':'Ticket kaufen';});
   var pend=TIX.mine.filter(function(x){return tixSt(x)==='p';}).length;if(pend&&!TIX.say)tixSay('Am Shopping District bekommst du es und bezahlst du auch dort. Dein Ticket wird bestätigt, sobald du es im Spiel gekauft hast.',false,true);else if(!pend&&!TIX.say)tixSay('');
   tixGold();

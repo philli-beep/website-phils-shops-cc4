@@ -137,13 +137,14 @@ export async function handle(req, store, env) {
       let d; try { d = JSON.parse(req.body || "null"); } catch { return res(400, { error: "json" }); }
       if (!admin) {
         const sh = (await store.get("shop/status")) || {};
-        if (p.col === "orders" && !sh.open) return res(403, { error: "XP Shop geschlossen" });
+        const prevD = (await store.get(key)) || {}; const shrink = (Array.isArray(d && d.list) ? d.list.length < (prevD.list || []).length : false) || (Array.isArray(d && d.subs) ? d.subs.length < (prevD.subs || []).length : false);
+        if (p.col === "orders" && !sh.open && !shrink) return res(403, { error: "XP Shop geschlossen" });
         if (p.col === "tix") {
           const prev = (await store.get(key)) || { items: [] };
           for (const x of (Array.isArray(d && d.items) ? d.items : [])) if (!(prev.items || []).some((y) => y.d === x.d) && sh.tix && sh.tix[x.d] === false) return res(403, { error: "Ticket nicht verfügbar" });
         }
         if (p.col === "chat" && sh.chat === false) return res(403, { error: "Chat ist aus" });
-        if (p.col === "routes" && !sh.cb) return res(403, { error: "Cushion Weg bauen geschlossen" });
+        if (p.col === "routes" && !sh.cb && !shrink) return res(403, { error: "Cushion Weg bauen geschlossen" });
         d = cleanPlayerDoc(p.col, d); if (!d) return res(400, { error: "ungültig" });
         const nk = (n) => String(n || "").toLowerCase().replace(/[^a-z0-9_]/g, "");
         const blocked = (ign, kind) => { const b = sh.blocks && sh.blocks[nk(ign)]; const u = b && b[kind]; return !!u && (u === -1 || u > Date.now()); };
