@@ -1110,7 +1110,40 @@ body:has(#pan:not([hidden])) #toasts,body:has(#viewer:not([hidden])) #toasts{opa
 </div></div>
 
 <script>
-/*__SHIM__*/
+/* Anbindung an das eigene Backend (/api). Ersetzt die claude.ai-Datenbank. */
+(function(){
+  var uid='';try{uid=localStorage.getItem('phil_uid')||'';}catch(e){}
+  if(!/^[a-f0-9]{16,64}$/.test(uid)){uid=Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(12)),function(b){return('0'+b.toString(16)).slice(-2);}).join('');try{localStorage.setItem('phil_uid',uid);}catch(e){}}
+  var token='';try{token=sessionStorage.getItem('phil_tok')||'';}catch(e){}
+  async function api(method,kind,path,body){
+    var h={'x-uid':uid};if(token)h.authorization='Bearer '+token;if(body!==undefined)h['content-type']='application/json';
+    var r=await fetch('/api/'+kind+(path?'?path='+encodeURIComponent(path):''),{method:method,headers:h,body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});
+    if(!r.ok){var e=new Error('http '+r.status);e.status=r.status;throw e;}
+    return r.json();
+  }
+  function snap(d){return{exists:d!=null,data:function(){return d==null?undefined:JSON.parse(JSON.stringify(d));}};}
+  var reach=fetch('/api/ping',{cache:'no-store'}).then(function(r){return r.ok;}).catch(function(){return false;});
+  var watchers=[];
+  function poll(){watchers.forEach(function(w){w.run();});}
+  setInterval(poll,10000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)poll();});
+  var db={
+    doc:function(p){return{
+      get:async function(){return snap((await api('GET','doc',p)).data);},
+      set:async function(d){await api('PUT','doc',p,d);notify(p);},
+      update:async function(d){var cur=(await api('GET','doc',p)).data||{};await api('PUT','doc',p,Object.assign(cur,d));notify(p);},
+      delete:async function(){await api('DELETE','doc',p);notify(p);},
+      onSnapshot:function(ok,err){var last=null,w={path:p,run:async function(){try{var d=(await api('GET','doc',p)).data,s=JSON.stringify(d);if(s!==last){last=s;ok(snap(d));}}catch(e){if(err)err(e);}}};watchers.push(w);w.run();return function(){watchers=watchers.filter(function(x){return x!==w;});};}
+    };},
+    collection:function(c){return{get:async function(){var r=await api('GET','col',c);return{docs:r.docs.map(function(x){return{id:x.id,data:function(){return JSON.parse(JSON.stringify(x.data));}};})};}};}
+  };
+  function notify(p){setTimeout(function(){watchers.forEach(function(w){if(w.path===p)w.run();});},50);}
+  var user={id:async function(){return uid;},me:async function(){return{id:uid};},isOwner:function(){return!!token;},canEdit:function(){return!!token;},can:function(n){return n==='data.write'?true:null;}};
+  window.claude={_own:true,_reach:reach,use:async function(n){if(!(await reach))return null;return n==='db'?db:n==='user'?user:null;},
+    _login:async function(pw){if(!(await reach))return null;try{var r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:pw})});if(!r.ok)return false;var j=await r.json();token=j.token||'';try{sessionStorage.setItem('phil_tok',token);}catch(e){}return !!token;}catch(e){return false;}},
+    _logout:function(){token='';try{sessionStorage.removeItem('phil_tok');}catch(e){}}};
+})();
+
 var PLOTS=[{"n":["LionZenYT","rainz66"],"p":[[0,0],[200,0],[150,129],[0,89]]},{"n":["_V0ID_MC","Affemitwaffe1510"],"p":[[263,26],[444,26],[444,126],[251,128]]},{"n":["Pismakobra"],"p":[[444,0],[597,0],[583,124],[453,144],[444,125]]},{"n":["Vensar"],"p":[[583,52],[659,53],[636,111],[567,103]]},{"n":["CasualCondor8178"],"p":[[805,0],[947,2],[853,84],[854,129],[810,120]]},{"n":["Kenshima20"],"p":[[853,84],[947,2],[1060,34],[908,141],[854,131]]},{"n":["Korbi787"],"p":[[0,89],[150,129],[155,184],[89,184],[92,229],[0,232]]},{"n":["Senvyn"],"p":[[453,144],[583,125],[564,218],[486,202]]},{"n":["DarthRavan2000"],"p":[[583,125],[711,158],[649,197],[569,197]]},{"n":["JtzNOtMe"],"p":[[770,85],[807,85],[816,196],[765,186]]},{"n":["Dorito512"],"p":[[810,120],[908,142],[878,206],[816,196]]},{"n":["spezikasten5","_Freedy"],"p":[[152,129],[369,129],[360,252],[271,249],[242,183],[155,184]]},{"n":["np1k"],"p":[[649,197],[711,158],[742,187],[772,225],[712,281],[690,245]]},{"n":["Raumwolke34"],"p":[[742,187],[878,207],[880,304],[772,224]]},{"n":["Nichtsodeep","EinfTimo"],"p":[[89,184],[242,183],[271,249],[268,386],[139,386],[131,325],[99,317]]},{"n":["Mondstiefel"],"p":[[425,192],[467,171],[486,202],[564,218],[561,288],[467,297],[460,250]]},{"n":["10Tom13"],"p":[[594,240],[674,241],[677,289],[573,289]]},{"n":["EinfachMoritz10"],"p":[[772,225],[880,304],[832,360],[712,281]]},{"n":["NurNick_Yt"],"p":[[271,249],[360,252],[389,314],[451,337],[443,372],[445,396],[268,388]]},{"n":["cpvptimbo"],"p":[[409,275],[466,295],[451,337],[388,305]]},{"n":["Passi_071112"],"p":[[563,289],[668,290],[649,344],[561,320]]},{"n":["LoppyJu"],"p":[[880,305],[933,350],[854,382],[832,360]]},{"n":["Mosawerxwq"],"p":[[703,330],[832,362],[790,407],[693,394]]},{"n":["cpvpTim"],"p":[[463,314],[560,340],[539,415],[443,372]]},{"n":["Miks934"],"p":[[646,315],[700,330],[698,395],[629,395]]},{"n":["03724"],"p":[[580,330],[648,345],[629,414],[596,450],[543,439],[550,412]]},{"n":["Ozhvyz"],"p":[[0,320],[99,317],[131,325],[139,386],[139,522],[0,525]]},{"n":["The_Chicken_MC"],"p":[[139,386],[266,386],[266,459],[139,459]]},{"n":["Bauchaum2141592"],"p":[[267,388],[360,388],[360,460],[267,460]]},{"n":["StormerRed"],"p":[[693,394],[790,407],[746,498],[700,498]]},{"n":["EinLarsYT"],"p":[[443,372],[540,414],[516,510],[407,479],[424,430]]},{"n":["Lilmoonstorm07","Sporterkus1"],"p":[[139,460],[266,460],[266,522],[139,522]]},{"n":["Kerze5263","Raumwolke34"],"p":[[788,414],[825,420],[825,516],[746,498]]},{"n":["Happy_2012"],"p":[[825,405],[982,405],[982,626],[825,626]]},{"n":["Wuschell8"],"p":[[100,525],[226,525],[226,662],[92,662]]},{"n":["X_1_I"],"p":[[337,520],[410,520],[415,628],[322,635]]},{"n":["Lauch1A"],"p":[[520,546],[587,503],[659,574],[524,584]]},{"n":["Cookie"],"p":[[574,484],[692,436],[694,558],[659,574],[587,503]]},{"n":["Serpex_x"],"p":[[698,499],[745,498],[825,516],[729,608],[698,564]]},{"n":["Won2020"],"p":[[825,516],[825,625],[808,625],[808,690],[738,690],[708,630],[729,608]]},{"n":["ToasterKing123","mdtv"],"p":[[631,603],[659,574],[706,572],[706,625],[650,640]]},{"n":["MeinSchaf100","jadenout"],"p":[[534,613],[631,603],[655,719],[569,719]]},{"n":["Mart_8","_Ben18374"],"p":[[436,605],[522,586],[569,719],[463,730]]},{"n":["TingelPvPTT"],"p":[[92,662],[226,662],[226,807],[89,807]]},{"n":["Sivya"],"p":[[226,722],[399,722],[399,805],[226,805]]},{"n":["Zyztem_"],"p":[[862,676],[1050,676],[1046,808],[862,808]]}];
 var PWH="0315b4020af3eccab7706679580ac87a710d82970733b8719e70af9b57e7b9e6";var unlocked=false;
 
