@@ -1822,7 +1822,13 @@ function renderTix(){var box=$('#tix');if(!box)return;  box.querySelectorAll('.t
   tixGold();
   var a=document.activeElement;if(a!==$('#tkn'))$('#tkn').value=SHOP.tixn||'';if(a!==$('#tko'))$('#tko').value=SHOP.tixo||'';
   $('#tkan').checked=(SHOP.tix||{}).ne!==false;$('#tkao').checked=(SHOP.tix||{}).ow!==false;}
-function tixAdm(){var box=$('#tixadm');if(!box)return;box.textContent='';var open=0,ids={};TIX.all.forEach(function(t){(t.items||[]).forEach(function(x){if(tixSt(x)==='p'){open++;ids[t.uid+x.d+x.at]=1;}});});
+var tixSyncLast='';
+async function tixSync(){try{if(!unlocked)return;var m={};TIX.all.forEach(function(t){if(!t||typeof t.ign!=='string')return;(t.items||[]).forEach(function(x){if(tixSt(x)!=='ok')return;var k=ordKey(t.ign);m[k]=m[k]||{n:t.ign,ne:false,ow:false};m[k][x.d==='ne'?'ne':'ow']=true;});});
+  var L=Object.keys(m).map(function(k){return m[k];}),j=JSON.stringify(L);if(j===tixSyncLast)return;tixSyncLast=j;var db=await dbq();if(!db)return;
+  var man=[];try{var sm=await db.doc('tixpub/manual').get();if(sm.exists)man=(sm.data()||{}).list||[];}catch(e){}
+  man.forEach(function(x){if(!x||typeof x.n!=='string')return;var e=L.filter(function(y){return ordKey(y.n)===ordKey(x.n);})[0];if(e){e.ne=e.ne||!!x.ne;e.ow=e.ow||!!x.ow;}else L.push({n:x.n,ne:!!x.ne,ow:!!x.ow});});
+  await db.doc('tixpub/main').set({list:L,at:Date.now()});tixPubLoad();}catch(e){tixSyncLast='';}}
+function tixAdm(){var box=$('#tixadm');if(!box)return;tixSync();box.textContent='';var open=0,ids={};TIX.all.forEach(function(t){(t.items||[]).forEach(function(x){if(tixSt(x)==='p'){open++;ids[t.uid+x.d+x.at]=1;}});});
   if(TIX.seen){for(var q in ids)if(!TIX.seen[q]){playSnd('ok');break;}}TIX.seen=ids;var tt=document.querySelector('#plist .ptabs [data-t="tk"]');if(tt)tt.textContent=open?'Tickets ('+open+')':'Tickets';
   var L=[];TIX.all.forEach(function(t){(t.items||[]).forEach(function(x){L.push({uid:t.uid,n:t.ign||'?',d:x.d,at:x.at,st:x.st,h:x.h});});});L.sort(function(a,b){return b.at-a.at;});
   if(!L.length){box.appendChild(eh('p','hint','Noch keine Käufe.'));return;}
