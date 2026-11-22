@@ -830,7 +830,16 @@ body:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
 @media (max-width:700px){.chbtn{order:2;padding:6px 12px;font-size:.82rem}.nav .nchip{order:3!important}.nav .pbtn{order:4!important}.nav nav{order:5!important}.chp{top:96px;height:calc(100vh - 110px)}}
 @media(prefers-reduced-motion:reduce){.chp{animation:none}}
 
+body:has(#pan:not([hidden])) #toasts,body:has(#viewer:not([hidden])) #toasts{opacity:0;visibility:hidden}
 /* ---------- Ticket kaufen ---------- */
+.gt{display:inline-flex;gap:6px;align-items:center;margin-left:auto}.gt[hidden]{display:none}
+.gt:not([hidden])~.nchip,.gt:not([hidden])~.pbtn{margin-left:0!important}
+.gt span{position:relative;display:inline-flex;align-items:center;gap:5px;padding:6px 10px 6px 8px;border-radius:12px;font-size:.78rem;font-weight:800;color:#3a2a00;background:linear-gradient(135deg,#fff3a6,#ffd24a 45%,#f0a800);box-shadow:0 0 14px rgba(255,200,0,.55),inset 0 1px 0 rgba(255,255,255,.7);animation:gts 3.2s ease-in-out infinite}
+.gt svg{width:18px;height:18px}
+@keyframes gts{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}
+@media(max-width:700px){.gt{order:3}.gt span{padding:5px 7px}.gt span b{display:none}}
+@media(prefers-reduced-motion:reduce){.gt span{animation:none}}
+
 .tix{margin:14px 0 0;padding:22px;border-radius:26px;background:rgba(255,255,255,.05);box-shadow:inset 0 1px 0 rgba(255,255,255,.14)}
 .tix h3{margin:0 0 4px;font-size:1.35rem;letter-spacing:-.02em}
 .tix .hint{margin:0 0 14px}
@@ -839,7 +848,7 @@ body:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
 .tixrow .tp{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:#ffd84a;font-size:1.1rem}
 .tixrow .tp .dia{width:20px;height:20px}
 .tixrow .stk{color:#9aa3af;font-size:.78rem;white-space:nowrap}.tixrow .tst{font-size:.78rem;font-weight:700;padding:5px 11px;border-radius:999px}
-.tixrow .tst.ok{background:rgba(52,224,161,.18);color:#5be9b8}.tixrow .tst.no{background:rgba(255,93,115,.18);color:#ff8a9a}
+.tixrow .tst.wait{background:rgba(255,216,74,.18);color:#ffd84a}.tixrow .tst.ok{background:rgba(52,224,161,.18);color:#5be9b8}.tixrow .tst.no{background:rgba(255,93,115,.18);color:#ff8a9a}
 .tixrow .act[disabled]{background:rgba(255,255,255,.1)!important;color:#8b94a1!important;box-shadow:none!important;filter:none;cursor:not-allowed}
 #tixm{margin:14px 2px 0;font-size:.98rem;line-height:1.45}#tixm.ok{color:#5be9b8}
 .tixl{margin-top:10px}.tixl .it{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.05);margin-top:6px}
@@ -857,7 +866,7 @@ body:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
 <a class="brand" href="#start" id="home" title="Zur Startseite" aria-label="Phils Shops, zur Startseite"><svg class="lg " viewBox="-4 -4 62 82" role="img" aria-label="Phil Logo"><path transform="translate(4,5)" fill="#423906" stroke="#2e2804" stroke-width="4" stroke-linejoin="round" fill-rule="evenodd" d="M0 0H40V10H50V30H40V40H10V70H0ZM10 10H40V30H10Z"/><path fill="url(#g)" stroke="#2e2804" stroke-width="4" stroke-linejoin="round" fill-rule="evenodd" d="M0 0H40V10H50V30H40V40H10V70H0ZM10 10H40V30H10Z"/><g clip-path="url(#c)"><rect width="50" height="3.5" fill="#f0eb5f" opacity=".8"/><rect width="3.5" height="70" fill="#ffec7f" opacity=".35"/><rect y="62" width="10" height="8" fill="#b88f00" opacity=".35"/><rect class="shine" x="0" y="-10" width="22" height="90" fill="url(#sh)"/></g></svg><span class="t">Phil</span></a>
 <button class="chbtn" id="chbtn" type="button" aria-haspopup="dialog" aria-label="Chat öffnen"><span class="chi"><svg viewBox="0 0 24 24"><path d="M12 3.6c4.9 0 8.7 3.2 8.7 7.3s-3.8 7.3-8.7 7.3c-.9 0-1.8-.1-2.6-.3-.9.7-2.3 1.4-3.9 1.5.7-.8 1.2-1.7 1.4-2.6-1.9-1.3-2.9-3.1-2.9-5.1 0-4.1 3.8-7.3 8.7-7.3z" fill="#fff"/></svg></span><span>Chat</span><i id="chdot" hidden></i></button><span class="bar" aria-hidden="true"></span>
 <nav id="nv" aria-label="Hauptmenü"><span class="pill" id="pill"></span><a href="#start" data-s="start">Start</a><a href="#cushionbahn" data-s="cushionbahn">Cushion Shop</a><a href="#xp" data-s="xp">XP Shop</a><a href="#trade" data-s="trade">Trading Hall</a></nav>
-<button class="nchip" id="nchip" type="button" hidden aria-label="Minecraft-Namen ändern"><span></span><em>ändern</em></button><button class="pbtn" id="pbtn" style="margin-left:auto" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span class="pt">Postfach Panel</span></button>
+<span class="gt" id="gt" hidden></span><button class="nchip" id="nchip" type="button" hidden aria-label="Minecraft-Namen ändern"><span></span><em>ändern</em></button><button class="pbtn" id="pbtn" style="margin-left:auto" type="button" aria-haspopup="dialog"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span class="pt">Postfach Panel</span></button>
 </div></header>
 
 <main>
@@ -1045,7 +1054,7 @@ body:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
 <div class="two" style="margin-top:8px"><div><label class="f" for="tkn">Preis Nether (Diamanten)</label><input class="in" id="tkn" maxlength="6" inputmode="numeric"></div><div><label class="f" for="tko">Preis Overworld (Diamanten)</label><input class="in" id="tko" maxlength="6" inputmode="numeric"></div></div>
 <div class="two"><div><label class="f" for="tkf">Gebühr (Diamanten)</label><input class="in" id="tkf" maxlength="6" inputmode="numeric"></div><div><label class="f" for="tkd">Alle wie viele Tage</label><input class="in" id="tkd" maxlength="3" inputmode="numeric"></div></div>
 <div style="margin-top:12px"><button class="act go" id="tksave" type="button">Speichern</button></div></div>
-<div class="pcard"><h4>Ticket-Käufe</h4><p class="hint">Wer ein Ticket gekauft hat. Nach der Übergabe im Automarkt kannst du den Eintrag entfernen.</p><div id="tixadm" class="tixl"></div></div></div>
+<div class="pcard"><h4>Ticket-Käufe</h4><p class="hint">Wer ein Ticket bestellt hat. Wenn die Person im Spiel bezahlt hat, tippst du auf Annehmen. Dann bekommt sie ein goldenes Ticket oben in der Ecke. Mit Ablehnen kann sie es noch einmal versuchen.</p><div id="tixadm" class="tixl"></div></div></div>
 <div class="pp" data-p="ch"><div class="pcard"><h4>Allgemeiner Chat</h4><p class="hint">Hier schalten alle Besucher Nachrichten an alle. Du kannst ihn ausschalten, Nachrichten löschen und Spieler stummschalten (im Chat bei der Nachricht oder im Tab Spieler).</p><label class="ck"><input type="checkbox" id="chsw" checked> Allgemeiner Chat ist an</label></div>
 <div class="pcard"><h4>Nachrichten an dich</h4><p class="hint">Spieler, die dir über „Mit Phil“ schreiben. Antworte direkt hier.</p><div class="row"><button class="btn sm" id="chref" type="button">Aktualisieren</button></div><div id="thl"></div></div></div>
 <div class="pp" data-p="de"><h4 style="margin:22px 0 0;font-size:1.15rem">Texte der Website</h4>
@@ -1716,34 +1725,42 @@ var CH_MS=6000;
 
 /* ---------- Tickets ---------- */
 var TIX={mine:[],all:[],say:false,seen:null};
+function tixSt(x){return x.st||(x.h?'ok':'p');}
 function tixPr(k){var v=k==='ne'?SHOP.tixn:SHOP.tixo;return v?v:(k==='ne'?345:96);}
 function stk(n){n=+n;if(!(n>=64))return '';var x=Math.round(n/64*10)/10;return '= '+String(x).replace('.',',')+' Stacks';}
 function tixSay(t,bad,ok){var m=$('#tixm');if(!m)return;m.className='msg'+(bad?' err':ok?' ok':'');m.textContent=t||'';}
 function renderTix(){var box=$('#tix');if(!box)return;var f=SHOP.tixf?SHOP.tixf:25,dd=SHOP.tixd?SHOP.tixd:3;
   $('#tixfee').textContent='Danach zahlst du alle '+dd+' Tage '+f+' Diamanten.';
   box.querySelectorAll('.tixrow').forEach(function(r){var k=r.dataset.w,b=r.querySelector('button'),st=r.querySelector('.tst');r.querySelector('.tpv').textContent=tixPr(k);r.querySelector('.stk').textContent=stk(tixPr(k));
-    var it=TIX.mine.filter(function(x){return x.d===k;})[0],got=!!it,off=(SHOP.tix||{})[k]===false&&!got;
-    st.hidden=!(off||got);st.className='tst '+(got?'ok':'no');st.textContent=got?(it.h?'Erhalten':'Gekauft'):'Nicht verfügbar';
-    b.disabled=off||got;b.classList.remove('ask');b.textContent=got?(it.h?'Ticket erhalten':'Gekauft'):off?'Nicht verfügbar':'Ticket kaufen';});
-  var pend=TIX.mine.filter(function(x){return !x.h;}).length;if(pend&&!TIX.say)tixSay('Alles klar! Bring bitte die Diamanten zum Shopping District. Dort bekommst du das Ticket im Automarkt.',false,true);else if(!pend&&!TIX.say)tixSay('');
+    var it=TIX.mine.filter(function(x){return x.d===k;})[0],sx=it?tixSt(it):'',got=!!it&&sx!=='no',off=(SHOP.tix||{})[k]===false&&!got;
+    st.hidden=!(off||it);st.className='tst '+(sx==='ok'?'ok':sx==='p'?'wait':'no');st.textContent=sx==='ok'?'Bestätigt':sx==='p'?'Wartet auf Bestätigung':sx==='no'?'Abgelehnt':'Nicht verfügbar';
+    b.disabled=off||got;b.classList.remove('ask');b.textContent=sx==='ok'?'Ticket bestätigt':sx==='p'?'Bestellt':off?'Nicht verfügbar':sx==='no'?'Nochmal kaufen':'Ticket kaufen';});
+  var pend=TIX.mine.filter(function(x){return tixSt(x)==='p';}).length;if(pend&&!TIX.say)tixSay('Am Shopping District bekommst du es und bezahlst du auch dort. Dein Ticket wird bestätigt, sobald du es im Spiel gekauft hast.',false,true);else if(!pend&&!TIX.say)tixSay('');
+  tixGold();
   var a=document.activeElement;if(a!==$('#tkn'))$('#tkn').value=SHOP.tixn||'';if(a!==$('#tko'))$('#tko').value=SHOP.tixo||'';if(a!==$('#tkf'))$('#tkf').value=SHOP.tixf||'';if(a!==$('#tkd'))$('#tkd').value=SHOP.tixd||'';
   $('#tkan').checked=(SHOP.tix||{}).ne!==false;$('#tkao').checked=(SHOP.tix||{}).ow!==false;}
-function tixAdm(){var box=$('#tixadm');if(!box)return;box.textContent='';var open=0,ids={};TIX.all.forEach(function(t){(t.items||[]).forEach(function(x){if(!x.h){open++;ids[t.uid+x.d+x.at]=1;}});});
+function tixAdm(){var box=$('#tixadm');if(!box)return;box.textContent='';var open=0,ids={};TIX.all.forEach(function(t){(t.items||[]).forEach(function(x){if(tixSt(x)==='p'){open++;ids[t.uid+x.d+x.at]=1;}});});
   if(TIX.seen){for(var q in ids)if(!TIX.seen[q]){playSnd('ok');break;}}TIX.seen=ids;var tt=document.querySelector('#plist .ptabs [data-t="tk"]');if(tt)tt.textContent=open?'Tickets ('+open+')':'Tickets';
-  var L=[];TIX.all.forEach(function(t){(t.items||[]).forEach(function(x){L.push({uid:t.uid,n:t.ign||'?',d:x.d,at:x.at});});});L.sort(function(a,b){return b.at-a.at;});
+  var L=[];TIX.all.forEach(function(t){(t.items||[]).forEach(function(x){L.push({uid:t.uid,n:t.ign||'?',d:x.d,at:x.at,st:x.st,h:x.h});});});L.sort(function(a,b){return b.at-a.at;});
   if(!L.length){box.appendChild(eh('p','hint','Noch keine Käufe.'));return;}
   L.forEach(function(x){var it=eh('div','it'),sp=eh('span');var nm=eh('b',null,x.n);if(ordKey(x.n)==='raumwolke34')nm.className='rw';sp.appendChild(nm);sp.appendChild(document.createTextNode(' · '+(x.d==='ne'?'Nether':'Overworld')+' · '+new Date(x.at).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})));it.appendChild(sp);
-    if(!x.h){var hb=eh('button','act go','Übergeben');hb.type='button';hb.addEventListener('click',async function(){hb.disabled=true;try{await chPut('tix/'+x.uid,function(d){return{ign:d.ign||x.n,items:(d.items||[]).map(function(y){return y.d===x.d?{d:y.d,at:y.at,h:true}:y;})};});chPoll();}catch(e){hb.disabled=false;}});it.appendChild(hb);}else sp.appendChild(document.createTextNode(' · übergeben'));
+    var sx=tixSt(x);function setSt(v){return async function(){try{await chPut('tix/'+x.uid,function(d){return{ign:d.ign||x.n,items:(d.items||[]).map(function(y){return(y.d===x.d&&y.at===x.at)?{d:y.d,at:y.at,st:v}:y;})};});chPoll();}catch(e){}};}
+    if(sx==='p'){var ok=eh('button','act go','Annehmen');ok.type='button';ok.addEventListener('click',function(){ok.disabled=true;setSt('ok')();});it.appendChild(ok);var no=eh('button','act','Ablehnen');no.type='button';no.addEventListener('click',function(){no.disabled=true;setSt('no')();});it.appendChild(no);}
+    else sp.appendChild(document.createTextNode(sx==='ok'?' · bestätigt':' · abgelehnt'));
     var rm=eh('button','act','Entfernen');rm.type='button';rm.addEventListener('click',async function(){rm.disabled=true;try{await chPut('tix/'+x.uid,function(d){return{ign:d.ign||x.n,items:(d.items||[]).filter(function(y){return y.d!==x.d;})};});chPoll();}catch(e){rm.disabled=false;}});it.appendChild(rm);box.appendChild(it);});}
-async function tixLoad(){var c=await cloud();if(!c)return;try{var sn=await c.db.doc('tix/'+c.id).get();TIX.mine=sn.exists?((sn.data()||{}).items||[]):[];}catch(e){}renderTix();}
+var GSVG='<svg viewBox="0 0 24 24" fill="none" stroke="#3a2a00" stroke-width="1.8" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z" fill="#fff6bf"/><path d="M14 7v10" stroke-dasharray="1.6 2"/></svg>';
+function tixGold(){var g=$('#gt');if(!g)return;g.textContent='';var any=false;TIX.mine.forEach(function(x){if(tixSt(x)!=='ok')return;any=true;var sp=eh('span');sp.title='Goldenes Ticket: '+(x.d==='ne'?'Nether':'Overworld');sp.setAttribute('aria-label',sp.title);sp.insertAdjacentHTML('beforeend',GSVG);sp.appendChild(eh('b',null,x.d==='ne'?'Nether':'Overworld'));g.appendChild(sp);});g.hidden=!any;}
+function tixNotify(){TIX.mine.forEach(function(x){var s=tixSt(x);if(s!=='ok'&&s!=='no')return;var k='t'+x.d+x.at+':'+s;if(seenN.indexOf(k)>-1||shownN[k])return;shownN[k]=1;var w=x.d==='ne'?'Nether':'Overworld';
+  showToast(k,s==='ok'?{state:'ok',title:'Dein Goldenes Ticket ('+w+') ist bestätigt',body:'Du findest es jetzt oben in der Ecke.'}:{state:'no',title:'Dein Ticket ('+w+') wurde abgelehnt',body:'Du kannst es gern noch einmal versuchen.'});});}
+async function tixLoad(){var c=await cloud();if(!c)return;try{var sn=await c.db.doc('tix/'+c.id).get();TIX.mine=sn.exists?((sn.data()||{}).items||[]):[];}catch(e){}renderTix();tixNotify();}
 document.querySelectorAll('.tixrow button').forEach(function(b){b.addEventListener('click',async function(){var k=b.dataset.b;
   if(!myName){tixSay('Gib zuerst deinen Minecraft-Namen ein.',true);openNG();return;}
   if((SHOP.tix||{})[k]===false){tixSay('Dieses Ticket ist gerade nicht verfügbar.',true);return;}
   if(TIX.mine.some(function(x){return x.d===k;}))return;
   if(!b.classList.contains('ask')){b.classList.add('ask');b.textContent='Wirklich kaufen? Ja';tixSay('Zum Kaufen noch einmal tippen.');clearTimeout(b._t);b._t=setTimeout(function(){TIX.say=false;renderTix();tixSay('');},5000);TIX.say=true;return;}
   clearTimeout(b._t);var c=await cloud();if(!c){tixSay('Ticket kaufen geht hier gerade nicht.',true);return;}b.disabled=true;
-  try{await chPut('tix/'+c.id,function(d){return{ign:myName,items:(d.items||[]).filter(function(x){return x.d!==k;}).concat([{d:k,at:Date.now()}]).slice(-4)};});
-    TIX.mine.push({d:k,at:Date.now()});TIX.say=false;renderTix();tixSay('Alles klar! Bring bitte die Diamanten zum Shopping District. Dort bekommst du das Ticket im Automarkt.',false,true);playSnd('ok');}
+  try{await chPut('tix/'+c.id,function(d){return{ign:myName,items:(d.items||[]).filter(function(x){return x.d!==k;}).concat([{d:k,at:Date.now(),st:'p'}]).slice(-4)};});
+    TIX.mine=TIX.mine.filter(function(x){return x.d!==k;});TIX.mine.push({d:k,at:Date.now(),st:'p'});TIX.say=false;renderTix();tixSay('Am Shopping District bekommst du es und bezahlst du auch dort. Dein Ticket wird bestätigt, sobald du es im Spiel gekauft hast.',false,true);showToast('ti'+Date.now(),{state:'ok',title:'Ticket bestellt',body:'Am Shopping District bekommst du es und bezahlst du auch dort. Dein Ticket wird bestätigt, sobald du es im Spiel gekauft hast.'});}
   catch(e){b.disabled=false;TIX.say=false;renderTix();tixSay('Das hat nicht geklappt. Versuch es gleich noch einmal.',true);}});});
 $('#tksave').addEventListener('click',async function(){if(!unlocked)return;SHOP.tix={ne:$('#tkan').checked,ow:$('#tkao').checked};var tn=function(v){return String(v).replace(/[^0-9]/g,'').slice(0,6);};SHOP.tixn=tn($('#tkn').value);SHOP.tixo=tn($('#tko').value);SHOP.tixf=tn($('#tkf').value);SHOP.tixd=tn($('#tkd').value);renderTix();
   try{await pushShop();savedOk();}catch(e){$('#shm2').className='msg err';$('#shm2').textContent='Speichern nicht möglich. '+why();}});

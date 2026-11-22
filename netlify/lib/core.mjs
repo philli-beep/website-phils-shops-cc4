@@ -69,7 +69,7 @@ function cleanPlayerDoc(col, d) {
     const items = [];
     for (const x of d.items) {
       if (!x || (x.d !== "ne" && x.d !== "ow") || !Number.isFinite(x.at)) return null;
-      items.push({ d: x.d, at: x.at, h: x.h === true });
+      items.push({ d: x.d, at: x.at, st: "p" });
     }
     return { ign: d.ign, items };
   }
@@ -161,7 +161,7 @@ export async function handle(req, store, env) {
         }
         if (p.col === "tix") {
           const prev = (await store.get(key)) || { items: [] };
-          d.items = d.items.map((x) => { const o = (prev.items || []).find((y) => y.d === x.d); return { d: x.d, at: o ? o.at : x.at, h: !!(o && o.h) }; });
+          d.items = d.items.map((x) => { const o = (prev.items || []).find((y) => y.d === x.d && y.at === x.at); return { d: x.d, at: x.at, st: o ? (o.st || (o.h ? "ok" : "p")) : "p" }; });
         }
         if (p.col === "chat" && d.msgs.length) {
           const prev = (await store.get(key)) || { msgs: [] };
