@@ -1855,7 +1855,11 @@ function tixPubRender(list){try{var y=$('#tlyes'),n=$('#tlno');if(!y||!n)return;
   if(!list.length)y.appendChild(eh('span','e','Noch niemand.'));
   var seen={},c=0;PLOTS.forEach(function(pl){pl.n.forEach(function(nm){var k=ordKey(nm);if(have[k]||seen[k])return;seen[k]=1;c++;n.appendChild(tixPill(nm));});});
   if(!c)n.appendChild(eh('span','e','Alle haben ein Ticket.'));}catch(e){}}
-async function tixPubLoad(){try{var db=await dbq();if(!db)return;var sn=await db.doc('tixpub/main').get();tixPubRender(sn.exists?((sn.data()||{}).list||[]):[]);}catch(e){}}
+async function tixPubLoad(){var db=await dbq();if(!db)return;var L=[],M=[];
+  try{var sn=await db.doc('tixpub/main').get();if(sn.exists)L=((sn.data()||{}).list||[]).slice();}catch(e){}
+  try{var sm=await db.doc('tixpub/manual').get();if(sm.exists){M=((sm.data()||{}).list||[]);TMAN=M.slice();tmRender();}}catch(e){}
+  M.forEach(function(m){if(!m||typeof m.n!=='string')return;var e=L.filter(function(x){return x&&ordKey(x.n)===ordKey(m.n);})[0];if(e){e.ne=e.ne||!!m.ne;e.ow=e.ow||!!m.ow;}else L.push({n:m.n,ne:!!m.ne,ow:!!m.ow});});
+  L.sort(function(a,b){return String(a.n).toLowerCase()<String(b.n).toLowerCase()?-1:1;});tixPubRender(L);}
 var TMAN=[];
 function tmRender(){var box=$('#tmlist');if(!box)return;box.textContent='';TMAN.forEach(function(x,i){var r=eh('div','it'),t=eh('div');t.appendChild(eh('b',null,x.n));t.appendChild(eh('small',null,' '+[x.ne?'Nether':'',x.ow?'Oberwelt':''].filter(Boolean).join(' & ')));r.appendChild(t);
   var rm=eh('button','act','Entfernen');rm.type='button';rm.addEventListener('click',async function(){TMAN.splice(i,1);await tmSave();});r.appendChild(rm);box.appendChild(r);});}
