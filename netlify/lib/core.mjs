@@ -2,8 +2,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 const PUBLIC_READ = new Set(["done", "shop", "mapedit", "ostatus", "chat"]);
-const OWN_READ = new Set(["routes", "ratings", "orders", "notify", "dm", "dmr"]);
-const PLAYER_WRITE = new Set(["routes", "ratings", "orders", "chat", "dm"]);
+const OWN_READ = new Set(["routes", "ratings", "orders", "notify", "dm", "dmr", "tix"]);
+const PLAYER_WRITE = new Set(["routes", "ratings", "orders", "chat", "dm", "tix"]);
 const ALL = new Set([...PUBLIC_READ, ...OWN_READ]);
 const TOKEN_TTL = 12 * 3600 * 1000;
 const MAX_BODY = 400 * 1024;
@@ -63,6 +63,15 @@ function cleanPlayerDoc(col, d) {
       msgs.push({ id: m.id, n: m.n, t: m.t, at: m.at });
     }
     return { msgs };
+  }
+  if (col === "tix") {
+    if (!Array.isArray(d.items) || d.items.length > 4 || !NAME.test(d.ign || "")) return null;
+    const items = [];
+    for (const x of d.items) {
+      if (!x || (x.d !== "ne" && x.d !== "ow") || !Number.isFinite(x.at)) return null;
+      items.push({ d: x.d, at: x.at });
+    }
+    return { ign: d.ign, items };
   }
   if (col === "dm") {
     if (!Array.isArray(d.msgs) || d.msgs.length > 40 || !NAME.test(d.n || "")) return null;
@@ -129,6 +138,10 @@ export async function handle(req, store, env) {
       if (!admin) {
         const sh = (await store.get("shop/status")) || {};
         if (p.col === "orders" && !sh.open) return res(403, { error: "XP Shop geschlossen" });
+        if (p.col === "tix") {
+          const prev = (await store.get(key)) || { items: [] };
+          for (const x of d.items) if (!(prev.items || []).some((y) => y.d === x.d) && sh.tix && sh.tix[x.d] === false) return res(403, { error: "Ticket nicht verfügbar" });
+        }
         if (p.col === "chat" && sh.chat === false) return res(403, { error: "Chat ist aus" });
         if (p.col === "routes" && !sh.cb) return res(403, { error: "Cushion Weg bauen geschlossen" });
         d = cleanPlayerDoc(p.col, d); if (!d) return res(400, { error: "ungültig" });
