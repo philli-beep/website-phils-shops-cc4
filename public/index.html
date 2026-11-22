@@ -901,6 +901,13 @@ body:has(#pan:not([hidden])) #toasts,body:has(#viewer:not([hidden])) #toasts{opa
 .tl2{display:grid;grid-template-columns:1fr 1fr;gap:22px}@media(max-width:700px){.tl2{grid-template-columns:1fr}}
 .tlp{display:flex;flex-wrap:wrap;gap:8px}.tlp .pill{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;background:rgba(255,214,10,.14);color:#ffd60a;font-weight:700;font-size:.9rem}
 .tlp .pill i{font-style:normal;font-size:.7rem;padding:2px 7px;border-radius:999px;background:#ffd60a;color:#1b1500}.tlp.no .pill{background:rgba(255,255,255,.07);color:#ffd60a;font-weight:600}.tlp .e{color:#9aa3af;font-size:.9rem}
+.tixl{border:0!important}
+.tix h3,.tixl h3{cursor:pointer;user-select:none;display:flex;align-items:center;gap:10px}
+.tix h3::after,.tixl h3::after{content:"";width:11px;height:11px;border-right:3px solid currentColor;border-bottom:3px solid currentColor;transform:rotate(45deg) translate(-2px,-2px);transition:transform .3s;opacity:.8;margin-left:4px}
+.tix.shut h3::after,.tixl.shut h3::after{transform:rotate(-45deg)}
+.tix.shut .tkc,.tix.shut .msg,.tixl.shut .tl2{display:none}
+.tix:not(.shut) .tkc,.tixl:not(.shut) .tl2{animation:tkopen .35s ease}
+@keyframes tkopen{from{opacity:.0;transform:translateY(-8px)}}
 </style>
 </head>
 <body>
@@ -1842,6 +1849,7 @@ function tixPubRender(list){var y=$('#tlyes'),n=$('#tlno');if(!y||!n)return;y.te
   if(!c)n.appendChild(eh('span','e','Alle haben ein Ticket.'));}
 async function tixPubLoad(){try{var db=await dbq();if(!db)return;var sn=await db.doc('tixpub/main').get();tixPubRender(sn.exists?((sn.data()||{}).list||[]):[]);}catch(e){}}
 tixPubRender([]);tixPubLoad();setInterval(tixPubLoad,30000);
+document.querySelectorAll('.tix h3,.tixl h3').forEach(function(h){h.setAttribute('role','button');h.tabIndex=0;var bx=h.parentNode;function tg(){bx.classList.toggle('shut');h.setAttribute('aria-expanded',!bx.classList.contains('shut'));}h.setAttribute('aria-expanded','true');h.addEventListener('click',tg);h.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();tg();}});});
 renderTix();tixLoad();
 (function(){var bx=$('#tix');if(!bx)return;if(!window.IntersectionObserver){bx.classList.add('go');return;}var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){bx.classList.add('go');io.disconnect();}});},{threshold:.15});io.observe(bx);setTimeout(function(){bx.classList.add('go');},4000);})();
 
