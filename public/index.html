@@ -940,6 +940,8 @@ body:has(#pan:not([hidden])) #toasts,body:has(#viewer:not([hidden])) #toasts{opa
 .nav nav .vsep{margin:0 8px;position:relative;z-index:1}
 @media(min-width:861px){.nav nav{gap:2px!important}.nav nav a{padding:9px 13px!important}}
 @media(max-width:860px){.nav>.wrap>.vsep{display:none}}
+.tkc.offer{overflow:hidden;padding-left:54px!important}.tkc.offer::after{content:'ANGEBOT';position:absolute;left:0;top:50%;transform:translateY(-50%) rotate(180deg);writing-mode:vertical-rl;padding:14px 7px;border-radius:0 12px 12px 0;background:linear-gradient(180deg,#ffe14d,#ffc800);color:#1b1500;font-size:.68rem;font-weight:800;letter-spacing:.18em;box-shadow:0 6px 18px rgba(255,200,0,.35)}
+.tkc.offer .spb{display:none}
 </style>
 </head>
 <body>
@@ -1477,7 +1479,7 @@ async function saveTheme(){var m=$('#shm2');try{localStorage.setItem('phil_shopx
 function applyShop(open){SHOP.open=!!open;renderShop();}
 function spNum(v){return String(v==null?'':v).replace(/[^0-9]/g,'').slice(0,6);}
 function spPrice(el,base,sp,lab){if(!el)return;el.textContent='';sp=spNum(sp);base=String(base==null?'':base);
-  if(sp&&sp!==base){var b=document.createElement('em');b.className='spb';b.textContent=lab||'Sonderpreis';el.appendChild(b);if(base){var o=document.createElement('s');o.className='oldp';o.textContent=base;el.appendChild(o);}var n=document.createElement('span');n.className='newp';n.textContent=sp;el.appendChild(n);}else el.textContent=base;}
+  if(sp&&sp!==base){var b=document.createElement('em');b.className='spb';b.textContent=lab||'Angebot';el.appendChild(b);if(base){var o=document.createElement('s');o.className='oldp';o.textContent=base;el.appendChild(o);}var n=document.createElement('span');n.className='newp';n.textContent=sp;el.appendChild(n);}else el.textContent=base;}
 function renderShop(){var open=SHOP.open;$('#shst').textContent=open?'Geöffnet':'Gerade geschlossen';$('#shdot').className=open?'on':'';
   $('#shtxt').textContent=open?'Der XP Shop ist geöffnet. Gekauft wird direkt in Minecraft beim Shopping District.':'Der XP Shop ist gerade geschlossen. Gekauft wird direkt in Minecraft beim Shopping District.';
   $('#shopsw').checked=!!open;$('#cbsw').checked=!!SHOP.cb;$('#shsmall').textContent=open?'Geöffnet':'Geschlossen';$('#cbsmall').textContent=SHOP.cb?'Geöffnet':'Geschlossen';$('#cbst').textContent=SHOP.cb?'Geöffnet':'Geschlossen';var cc=$('#cbchip');cc.textContent=SHOP.cb?'Geöffnet':'Geschlossen';cc.classList.toggle('on',!!SHOP.cb);$('#cbban').hidden=!!SHOP.cb;$('#cbdot').className=SHOP.cb?'on':'';var sb=$('#send');if(sb)sb.classList.toggle('closedbtn',!SHOP.cb);var gb=$('#ordgo');if(gb)gb.classList.toggle('closedbtn',!open);var n=$('#shnote');n.textContent=SHOP.note||'';n.classList.toggle('on',!!SHOP.note);
@@ -1856,7 +1858,8 @@ var TKN={ne:'Nether',ow:'Overworld',pn:'Premium Nether',po:'Premium Overworld'},
 function tixPr(k){var v=SHOP[TKP[k][0]];return v?v:TKP[k][1];}
 function stk(n){n=+n;if(!(n>=64))return '';var x=Math.round(n/64*10)/10;return '= '+String(x).replace('.',',')+' Stacks';}
 function tixSay(t,bad,ok){var m=$('#tixm');if(!m)return;m.className='msg'+(bad?' err':ok?' ok':'');m.textContent=t||'';}
-function renderTix(){var box=$('#tix');if(!box)return;  box.querySelectorAll('.tkc').forEach(function(r){var k=r.dataset.w,b=r.querySelector('button'),st=r.querySelector('.tst');var te=rkEff(tixPr(k),(SHOP.sp||{})[TKP[k][2]]),spv=te[0];spPrice(r.querySelector('.tpv'),tixPr(k),spv,te[1]);r.querySelector('.stk').textContent=stk(spv&&spv!==String(tixPr(k))?spv:tixPr(k));var av=r.querySelector('.avp'),on=(SHOP.tix||{})[k]!==false;av.className='avp'+(on?'':' n');av.textContent=on?'Verfügbar':'Nicht verfügbar';
+function renderTix(){var box=$('#tix');if(!box)return;  box.querySelectorAll('.tkc').forEach(function(r){var k=r.dataset.w,b=r.querySelector('button'),st=r.querySelector('.tst');var te=rkEff(tixPr(k),(SHOP.sp||{})[TKP[k][2]]),spv=te[0];spPrice(r.querySelector('.tpv'),tixPr(k),spv,te[1]);var isOff=!!spv&&spv!==String(tixPr(k))&&te[1]==='Angebot';r.classList.toggle('offer',isOff);
+    var eff=spv&&spv!==String(tixPr(k))?spv:tixPr(k),nn=isOff&&(k==='pn'||k==='po')&&String(spv)===String(tixPr(k==='pn'?'ne':'ow'))?'Zum Preis eines normalen Tickets · ':'';r.querySelector('.stk').textContent=nn+stk(eff);var av=r.querySelector('.avp'),on=(SHOP.tix||{})[k]!==false;av.className='avp'+(on?'':' n');av.textContent=on?'Verfügbar':'Nicht verfügbar';
     var it=TIX.mine.filter(function(x){return x.d===k;})[0],sx=it?tixSt(it):'',got=!!it&&sx!=='no',off=(SHOP.tix||{})[k]===false&&!got;
     st.hidden=!it;st.className='tst '+(sx==='ok'?'ok':sx==='p'?'wait':'no');st.textContent=sx==='ok'?'Bestätigt':sx==='p'?'Wartet auf Bestätigung':sx==='no'?'Abgelehnt':'';
     var dl=r.querySelector('.odel');if(it&&!dl){dl=delBtn('Ticket löschen',async function(){var c=await cloud();if(!c)return false;await chPut('tix/'+c.id,function(d){return{ign:d.ign||myName,items:(d.items||[]).filter(function(y){return y.d!==k;})};});TIX.mine=TIX.mine.filter(function(y){return y.d!==k;});return true;},function(){renderTix();tixSay('Ticket gelöscht.');});r.appendChild(dl);}else if(!it&&dl)dl.remove();
@@ -1870,7 +1873,7 @@ function rkDisc(r){var v=parseInt(SHOP[r==='pro'?'dpro':'dbiz'],10);return v>=0&
 function rkPerks(r){if(r==='pro')return['<b>PRO-Abzeichen</b> und <b>goldener Name</b> im Chat','<b>'+rkDisc('pro')+' % Rabatt</b> auf XP, Farmen und Tickets (wird dir auf der Seite direkt angezeigt)','<b>1 offene XP-Bestellung mehr</b> als alle anderen'];
   return['<b>BUSINESS-Abzeichen</b> und <b>leuchtender Name</b> im Chat und oben','<b>'+rkDisc('biz')+' % Rabatt</b> auf XP, Farmen und Tickets','<b>2 offene XP-Bestellungen mehr</b> als alle anderen','<b>Vorrang:</b> deine Bestellungen stehen bei Phil ganz oben','Alles, was Pro auch hat'];}
 function rkMyDisc(){return rkHas('biz',myName)?rkDisc('biz'):rkHas('pro',myName)?rkDisc('pro'):0;}
-function rkEff(base,sp){sp=spNum(sp);var d=rkMyDisc(),b=+base;if(!d||!(b>0))return[sp,'Sonderpreis'];var c=String(Math.max(1,Math.round(b*(1-d/100))));if(sp&&+sp<=+c)return[sp,'Sonderpreis'];return[c,rkHas('biz',myName)?'Business-Preis':'Pro-Preis'];}
+function rkEff(base,sp){sp=spNum(sp);var d=rkMyDisc(),b=+base;if(!d||!(b>0))return[sp,'Angebot'];var c=String(Math.max(1,Math.round(b*(1-d/100))));if(sp&&+sp<=+c)return[sp,'Angebot'];return[c,rkHas('biz',myName)?'Business-Preis':'Pro-Preis'];}
 var RS={pro:{mine:null,all:[],seen:{}},biz:{mine:null,all:[],seen:{}}},RCUR='pro';
 function rkHas(r,n){if(!n)return false;var k=ordKey(n);return(SHOP[RK[r].key]||[]).some(function(x){return ordKey(x)===k;});}
 function isPro(n){return rkHas('pro',n)||rkHas('biz',n);}
