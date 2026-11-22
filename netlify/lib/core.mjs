@@ -69,7 +69,7 @@ function cleanPlayerDoc(col, d) {
     const items = [];
     for (const x of d.items) {
       if (!x || (x.d !== "ne" && x.d !== "ow") || !Number.isFinite(x.at)) return null;
-      items.push({ d: x.d, at: x.at });
+      items.push({ d: x.d, at: x.at, h: x.h === true });
     }
     return { ign: d.ign, items };
   }
@@ -140,7 +140,7 @@ export async function handle(req, store, env) {
         if (p.col === "orders" && !sh.open) return res(403, { error: "XP Shop geschlossen" });
         if (p.col === "tix") {
           const prev = (await store.get(key)) || { items: [] };
-          for (const x of d.items) if (!(prev.items || []).some((y) => y.d === x.d) && sh.tix && sh.tix[x.d] === false) return res(403, { error: "Ticket nicht verfügbar" });
+          for (const x of (Array.isArray(d && d.items) ? d.items : [])) if (!(prev.items || []).some((y) => y.d === x.d) && sh.tix && sh.tix[x.d] === false) return res(403, { error: "Ticket nicht verfügbar" });
         }
         if (p.col === "chat" && sh.chat === false) return res(403, { error: "Chat ist aus" });
         if (p.col === "routes" && !sh.cb) return res(403, { error: "Cushion Weg bauen geschlossen" });
@@ -158,6 +158,10 @@ export async function handle(req, store, env) {
             const mx = Number.isInteger(sh.maxord) && sh.maxord >= 1 ? sh.maxord : 2;
             if (active.length > mx) return res(403, { error: "zu viele offene Bestellungen" });
           }
+        }
+        if (p.col === "tix") {
+          const prev = (await store.get(key)) || { items: [] };
+          d.items = d.items.map((x) => { const o = (prev.items || []).find((y) => y.d === x.d); return { d: x.d, at: o ? o.at : x.at, h: !!(o && o.h) }; });
         }
         if (p.col === "chat" && d.msgs.length) {
           const prev = (await store.get(key)) || { msgs: [] };
