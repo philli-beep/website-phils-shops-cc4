@@ -46,6 +46,12 @@ async function rebuildTixPub(store) {
       const ok = (t.items || []).filter((x) => (x.st || (x.h ? "ok" : "p")) === "ok").map((x) => x.d);
       if (ok.length && NAME.test(t.ign || "")) list.push({ n: t.ign, ne: ok.includes("ne"), ow: ok.includes("ow") });
     }
+    const man = await store.get("tixpub/manual");
+    for (const m of (man && Array.isArray(man.list) ? man.list : [])) {
+      if (!m || !NAME.test(m.n || "")) continue;
+      const e = list.find((x) => x.n.toLowerCase() === m.n.toLowerCase());
+      if (e) { e.ne = e.ne || !!m.ne; e.ow = e.ow || !!m.ow; } else list.push({ n: m.n, ne: !!m.ne, ow: !!m.ow });
+    }
     list.sort((a, b) => a.n.toLowerCase().localeCompare(b.n.toLowerCase()));
     await store.set("tixpub/main", { list, at: Date.now() });
   } catch {}
@@ -190,7 +196,7 @@ export async function handle(req, store, env) {
       }
       else if (!d || typeof d !== "object" || Array.isArray(d)) return res(400, { error: "ungültig" });
       await store.set(key, d);
-      if (p.col === "tix") await rebuildTixPub(store);
+      if (p.col === "tix" || (p.col === "tixpub" && p.id === "manual")) await rebuildTixPub(store);
       return res(200, { ok: true });
     }
     return res(405, { error: "method" });
