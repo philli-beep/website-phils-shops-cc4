@@ -1,7 +1,7 @@
 // Kern des Backends: reine Logik ohne Netlify-Abhängigkeit (testbar).
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-const PUBLIC_READ = new Set(["done", "shop", "mapedit", "ostatus", "chat"]);
+const PUBLIC_READ = new Set(["done", "shop", "mapedit", "ostatus", "chat", "tixpub"]);
 const OWN_READ = new Set(["routes", "ratings", "orders", "notify", "dm", "dmr", "tix"]);
 const PLAYER_WRITE = new Set(["routes", "ratings", "orders", "chat", "dm", "tix"]);
 const ALL = new Set([...PUBLIC_READ, ...OWN_READ]);
@@ -37,6 +37,20 @@ function parsePath(p) {
   if (!m || !ALL.has(m[1])) return null;
   return { col: m[1], id: m[2] || null };
 }
+// Öffentliche Liste: wer hat ein bestätigtes Ticket (nur Name und Art, nichts sonst).
+async function rebuildTixPub(store) {
+  try {
+    const list = [];
+    for (const k of await store.list("tix/")) {
+      const t = await store.get(k); if (!t) continue;
+      const ok = (t.items || []).filter((x) => (x.st || (x.h ? "ok" : "p")) === "ok").map((x) => x.d);
+      if (ok.length && NAME.test(t.ign || "")) list.push({ n: t.ign, ne: ok.includes("ne"), ow: ok.includes("ow") });
+    }
+    list.sort((a, b) => a.n.toLowerCase().localeCompare(b.n.toLowerCase()));
+    await store.set("tixpub/main", { list, at: Date.now() });
+  } catch {}
+}
+
 const str = (v, n) => typeof v === "string" && v.length <= n;
 
 // Prüft/bereinigt, was ein Spieler in sein eigenes Dokument schreiben darf.
@@ -132,7 +146,7 @@ export async function handle(req, store, env) {
     if (req.method === "PUT" || req.method === "DELETE") {
       const own = uid && p.id === uid && PLAYER_WRITE.has(p.col);
       if (!admin && !own) return res(403, { error: "keine Rechte" });
-      if (req.method === "DELETE") { await store.del(key); return res(200, { ok: true }); }
+      if (req.method === "DELETE") { await store.del(key); if (p.col === "tix") await rebuildTixPub(store); return res(200, { ok: true }); }
       if ((req.body || "").length > MAX_BODY) return res(413, { error: "zu groß" });
       let d; try { d = JSON.parse(req.body || "null"); } catch { return res(400, { error: "json" }); }
       if (!admin) {
@@ -176,6 +190,7 @@ export async function handle(req, store, env) {
       }
       else if (!d || typeof d !== "object" || Array.isArray(d)) return res(400, { error: "ungültig" });
       await store.set(key, d);
+      if (p.col === "tix") await rebuildTixPub(store);
       return res(200, { ok: true });
     }
     return res(405, { error: "method" });
