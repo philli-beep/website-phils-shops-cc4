@@ -1742,7 +1742,7 @@ function renderTix(){var box=$('#tix');if(!box)return;var f=SHOP.tixf?SHOP.tixf:
   $('#tixfee').textContent='Danach zahlst du alle '+dd+' Tage '+f+' Diamanten.';
   box.querySelectorAll('.tixrow').forEach(function(r){var k=r.dataset.w,b=r.querySelector('button'),st=r.querySelector('.tst');r.querySelector('.tpv').textContent=tixPr(k);r.querySelector('.stk').textContent=stk(tixPr(k));
     var it=TIX.mine.filter(function(x){return x.d===k;})[0],sx=it?tixSt(it):'',got=!!it&&sx!=='no',off=(SHOP.tix||{})[k]===false&&!got;
-    st.hidden=!(off||it);st.className='tst '+(sx==='ok'?'ok':sx==='p'?'wait':'no');st.textContent=sx==='ok'?'Bestätigt':sx==='p'?'Wartet auf Bestätigung':sx==='no'?'Abgelehnt':'Nicht verfügbar';
+    st.hidden=false;st.className='tst '+(sx==='ok'||(!it&&!off)?'ok':sx==='p'?'wait':'no');st.textContent=sx==='ok'?'Bestätigt':sx==='p'?'Wartet auf Bestätigung':sx==='no'?'Abgelehnt':off?'Nicht verfügbar':'Verfügbar';
     b.disabled=off||got;b.classList.remove('ask');b.textContent=sx==='ok'?'Ticket bestätigt':sx==='p'?'Bestellt':off?'Nicht verfügbar':sx==='no'?'Nochmal kaufen':'Ticket kaufen';});
   var pend=TIX.mine.filter(function(x){return tixSt(x)==='p';}).length;if(pend&&!TIX.say)tixSay('Am Shopping District bekommst du es und bezahlst du auch dort. Dein Ticket wird bestätigt, sobald du es im Spiel gekauft hast.',false,true);else if(!pend&&!TIX.say)tixSay('');
   tixGold();
