@@ -2,8 +2,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 const PUBLIC_READ = new Set(["done", "shop", "mapedit", "ostatus", "chat", "tixpub"]);
-const OWN_READ = new Set(["routes", "ratings", "orders", "notify", "dm", "dmr", "tix"]);
-const PLAYER_WRITE = new Set(["routes", "ratings", "orders", "chat", "dm", "tix"]);
+const OWN_READ = new Set(["routes", "ratings", "orders", "notify", "dm", "dmr", "tix", "pro"]);
+const PLAYER_WRITE = new Set(["routes", "ratings", "orders", "chat", "dm", "tix", "pro"]);
 const ALL = new Set([...PUBLIC_READ, ...OWN_READ]);
 const TOKEN_TTL = 12 * 3600 * 1000;
 const MAX_BODY = 400 * 1024;
@@ -93,6 +93,10 @@ function cleanPlayerDoc(col, d) {
     }
     return { ign: d.ign, items };
   }
+  if (col === "pro") {
+    if (!NAME.test(d.ign || "") || !Number.isFinite(d.at)) return null;
+    return { ign: d.ign, at: d.at, st: "p" };
+  }
   if (col === "dm") {
     if (!Array.isArray(d.msgs) || d.msgs.length > 40 || !NAME.test(d.n || "")) return null;
     const msgs = [];
@@ -176,13 +180,17 @@ export async function handle(req, store, env) {
             if (blocked(last.ign, "o")) return res(403, { error: "gesperrt" });
             const os = (await store.get("ostatus/" + nk(last.ign))) || { orders: [] };
             const active = d.list.filter((o) => nk(o.ign) === nk(last.ign)).filter((o) => { const s = (os.orders || []).find((x) => x.id === o.id); const st = s ? s.state : "bearb"; return st !== "fertig" && st !== "no"; });
-            const mx = Number.isInteger(sh.maxord) && sh.maxord >= 1 ? sh.maxord : 2;
+            const mx = (Number.isInteger(sh.maxord) && sh.maxord >= 1 ? sh.maxord : 2) + ((Array.isArray(sh.pros) && sh.pros.some((q) => nk(q) === nk(last.ign))) ? 1 : 0);
             if (active.length > mx) return res(403, { error: "zu viele offene Bestellungen" });
           }
         }
         if (p.col === "tix") {
           const prev = (await store.get(key)) || { items: [] };
           d.items = d.items.map((x) => { const o = (prev.items || []).find((y) => y.d === x.d && y.at === x.at); return { d: x.d, at: x.at, st: o ? (o.st || (o.h ? "ok" : "p")) : "p" }; });
+        }
+        if (p.col === "pro") {
+          const prev = (await store.get(key)) || {};
+          d.st = prev.at === d.at && prev.st ? prev.st : "p";
         }
         if (p.col === "chat" && d.msgs.length) {
           const prev = (await store.get(key)) || { msgs: [] };
