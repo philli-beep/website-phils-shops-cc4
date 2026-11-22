@@ -857,7 +857,9 @@ body:has(#pan:not([hidden])) #toasts,body:has(#viewer:not([hidden])) #toasts{opa
 .homebtn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px 9px 13px;border-radius:999px;color:#101215;font-weight:700;font-size:.9rem;text-decoration:none;background:linear-gradient(160deg,#ffe86a,#ffc400);box-shadow:0 2px 12px rgba(255,196,0,.35),inset 0 1px 0 rgba(255,255,255,.55);transition:transform .35s cubic-bezier(.34,1.56,.64,1),filter .2s}
 .homebtn:hover{transform:scale(1.05);filter:brightness(1.06)}.homebtn:active{transform:scale(.94)}
 .homebtn svg{width:18px;height:18px}
-@media(min-width:861px){.nav .wrap{max-width:min(1500px,calc(100% - 56px))!important;gap:24px}.nav nav{gap:12px}.nav nav a{padding:10px 22px}}
+@media(min-width:861px){.nav .wrap{max-width:calc(100% - 48px)!important;gap:40px}.nav nav{gap:30px}.nav nav a{padding:10px 26px}.brand{margin-right:8px}}
+@media(min-width:861px) and (max-width:1320px){.nav .wrap{gap:12px}.nav nav{gap:4px}.nav nav a{padding:9px 14px}.brand{margin-right:0}}
+@media(min-width:861px) and (max-width:1100px){.nav .wrap{gap:8px}.nav nav{gap:0}.nav nav a{padding:8px 10px;font-size:.88rem}.homebtn span{display:none}.homebtn{padding:9px 11px}.nchip em{display:none}}
 @media(max-width:700px){.homebtn{order:4;padding:7px 10px}.homebtn span{display:none}}
 
 </style>
