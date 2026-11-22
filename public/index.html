@@ -811,7 +811,7 @@ body:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
 .chh button.tb.on{color:#101215;background:hsl(calc(var(--hy)*1deg + -2deg) 73% 57%)}
 .chh button.tb i{position:absolute;top:3px;right:8px;width:9px;height:9px;border-radius:50%;background:#ff5d73}
 .chh button.tb i[hidden]{display:none}
-.chh .cx{flex:none;width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:#fff;cursor:pointer}
+.chh #chsnd{font-size:15px}.chh .cx{flex:none;width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:#fff;cursor:pointer}
 #chl{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:6px 2px;scrollbar-width:thin}
 .cm{max-width:88%;padding:8px 12px;border-radius:16px 16px 16px 6px;background:rgba(255,255,255,.07);align-self:flex-start;word-break:break-word}
 .cm.me{align-self:flex-end;border-radius:16px 16px 6px 16px;background:hsl(calc(var(--hy)*1deg + -2deg) 60% 30% / .75)}
@@ -996,7 +996,7 @@ body:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
 <input class="in" id="ngn" maxlength="16" placeholder="Dein Minecraft-Name" spellcheck="false" autocomplete="off" aria-label="Minecraft-Name">
 <button class="act go" type="submit">Weiter</button><p class="msg err" id="ngm" role="status" aria-live="polite"></p>
 <button class="ngx" type="button" id="ngc" hidden>Abbrechen</button></form></div>
-<div class="chp" id="chp" role="dialog" aria-label="Chat" hidden><div class="chh"><button type="button" class="tb on" data-ct="all">Allgemein<i hidden></i></button><button type="button" class="tb" data-ct="dm">Mit Phil<i hidden></i></button><button type="button" class="cx" id="chx" aria-label="Chat schließen">✕</button></div><div id="chl" aria-live="polite"></div><p class="msg" id="chs" role="status"></p><form class="chf" id="chf" autocomplete="off"><input class="in" id="chi" maxlength="200" placeholder="Nachricht schreiben" aria-label="Nachricht"><button class="btn" type="submit">Senden</button></form></div>
+<div class="chp" id="chp" role="dialog" aria-label="Chat" hidden><div class="chh"><button type="button" class="tb on" data-ct="all">Allgemein<i hidden></i></button><button type="button" class="tb" data-ct="dm">Mit Phil<i hidden></i></button><button type="button" class="cx" id="chsnd" aria-label="Ton an oder aus">🔔</button><button type="button" class="cx" id="chx" aria-label="Chat schließen">✕</button></div><div id="chl" aria-live="polite"></div><p class="msg" id="chs" role="status"></p><form class="chf" id="chf" autocomplete="off"><input class="in" id="chi" maxlength="200" placeholder="Nachricht schreiben" aria-label="Nachricht"><button class="btn" type="submit">Senden</button></form></div>
 <div id="toasts" role="region" aria-label="Benachrichtigungen"></div>
 <div id="pmov"></div>
 <!-- Postfach -->
@@ -1585,7 +1585,18 @@ document.querySelectorAll('.fold:not(.open)>.fbody>.fin').forEach(function(x){x.
 /* ---------- Nachrichten an den Spieler ---------- */
 var seenN=[];try{seenN=JSON.parse(localStorage.getItem('phil_seen')||'[]');}catch(e){}
 var shownN={};
-function showToast(k,it){var box=$('#toasts'),d=eh('div','toast '+(it.state==='ok'?'ok':'no'));d.setAttribute('role','status');
+
+/* ---------- Töne ---------- */
+var AC=null,sndOn=true;try{sndOn=localStorage.getItem('phil_snd')!=='0';}catch(e){}
+function sndCtx(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')try{AC.resume();}catch(e){}return AC;}
+['pointerdown','keydown','touchstart'].forEach(function(ev){document.addEventListener(ev,function(){sndCtx();},{passive:true});});
+function tone(c,t,f,d,v,type){var o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+.05);}
+function playSnd(kind){if(!sndOn)return;var c=sndCtx();if(!c||c.state!=='running')return;var t=c.currentTime+.02;
+  if(kind==='ok'){tone(c,t,659.25,.35,.18);tone(c,t+.11,783.99,.35,.18);tone(c,t+.22,1046.5,.55,.16);}
+  else if(kind==='no'){tone(c,t,392,.32,.18,'triangle');tone(c,t+.14,293.66,.55,.18,'triangle');}
+  else{tone(c,t,880,.22,.15);tone(c,t+.09,1318.5,.4,.13);}}
+function sndBtn(){var b=$('#chsnd');if(!b)return;b.textContent=sndOn?'🔔':'🔕';b.setAttribute('aria-pressed',sndOn?'true':'false');b.title=sndOn?'Ton an':'Ton aus';}
+function showToast(k,it){playSnd(it.state==='ok'?'ok':'no');var box=$('#toasts'),d=eh('div','toast '+(it.state==='ok'?'ok':'no'));d.setAttribute('role','status');
   d.appendChild(eh('span','ic',it.state==='ok'?'✓':'!'));
   var p=eh('p');p.appendChild(eh('b',null,it.title||(it.state==='ok'?'Dein Cushion-Shop-Vorschlag wurde angenommen':'Dein Cushion-Shop-Vorschlag wurde leider abgelehnt')));
   p.appendChild(document.createTextNode(it.body||(it.state==='ok'?('Er wird umgesetzt.'+(it.build?' Der Bau kostet 10 Diamanten.':'')):'Du kannst gern einen neuen Vorschlag einschicken.')));d.appendChild(p);
@@ -1614,7 +1625,7 @@ async function chPoll(){var c=await cloud();if(!c)return;
   try{var q=await c.db.collection('chat').get(),a=[];q.docs.forEach(function(d){((d.data()||{}).msgs||[]).forEach(function(m){a.push({id:m.id,n:m.n,t:m.t,at:m.at,uid:d.id});});});a.sort(function(x,y){return x.at-y.at;});CH.all=a.slice(-80);}catch(e){}
   try{var mine=await c.db.doc('dm/'+c.id).get(),rep=await c.db.doc('dmr/'+c.id).get(),a2=[];((mine.exists&&(mine.data()||{}).msgs)||[]).forEach(function(m){a2.push({id:m.id,t:m.t,at:m.at,me:true});});((rep.exists&&(rep.data()||{}).msgs)||[]).forEach(function(m){a2.push({id:m.id,t:m.t,at:m.at,ph:true});});a2.sort(function(x,y){return x.at-y.at;});CH.dm=a2;}catch(e){}
   if(unlocked){try{var tq=await c.db.collection('dm').get(),rq=await c.db.collection('dmr').get(),R={};rq.docs.forEach(function(d){R[d.id]=(d.data()||{}).msgs||[];});CH.adm=tq.docs.map(function(d){var D=d.data()||{};return{uid:d.id,n:D.n||'?',p:D.msgs||[],r:R[d.id]||[]};});}catch(e){}}
-  chRender();}
+  chNew();chRender();}
 function chUnread(){var r=chRd(),u={all:false,dm:false};var la=0,ld=0;CH.all.forEach(function(m){if(m.uid!==chUid&&m.at>la)la=m.at;});CH.dm.forEach(function(m){if(m.ph&&m.at>ld)ld=m.at;});u.all=la>(r.all||0);u.dm=ld>(r.dm||0);
   if(unlocked){var n=0;CH.adm.forEach(function(t){var lp=t.p.length?t.p[t.p.length-1].at:0,lr=t.r.length?t.r[t.r.length-1].at:0;if(lp>lr&&lp>((r.adm||{})[t.uid]||0))n++;});u.adm=n;}return u;}
 var chUid='';
@@ -1667,6 +1678,10 @@ function renderThreads(){var box=$('#thl');if(!box)return;if(box.contains(docume
     row.appendChild(inp);row.appendChild(go);row.appendChild(rd);card.appendChild(row);box.appendChild(card);});
   var r=chRd();r.adm=r.adm||{};T.forEach(function(t){if(!(t.p.length&&$('#plist').dataset.t==='ch'))return;r.adm[t.uid]=t.p[t.p.length-1].at;});if($('#plist').dataset.t==='ch'&&!$('#plist').hidden)chWr(r);}
 $('#chref').addEventListener('click',chPoll);
+$('#chsnd').addEventListener('click',function(){sndOn=!sndOn;try{localStorage.setItem('phil_snd',sndOn?'1':'0');}catch(e){}sndBtn();if(sndOn)playSnd('msg');});sndBtn();
+var seenM=null;
+function chNew(){var ids={},fresh=false;CH.all.forEach(function(m){if(m.uid!==chUid)ids[m.id]=1;});CH.dm.forEach(function(m){if(m.ph)ids[m.id]=1;});CH.adm.forEach(function(t){t.p.forEach(function(m){ids[m.id]=1;});});
+  if(seenM){for(var k in ids)if(!seenM[k]){fresh=true;break;}}seenM=ids;if(fresh)playSnd('msg');}
 $('#chsw').addEventListener('change',async function(){var sw=this,want=sw.checked;if(!unlocked){sw.checked=!want;return;}SHOP.chat=want;CH.sig='';try{await pushShop();savedOk();chRender();}catch(e){SHOP.chat=!want;sw.checked=!want;$('#shm2').className='msg err';$('#shm2').textContent='Speichern nicht möglich. '+why();}});
 (async function(){var c=await cloud();if(c)chUid=c.id;chPoll();setInterval(function(){chPoll();},CH_MS);})();
 var CH_MS=6000;
