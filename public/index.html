@@ -765,7 +765,12 @@ body:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;
 #start .lead+.lead{margin-top:-6px}.chbtn{border:0!important;gap:9px;padding:5px 16px 5px 5px!important;border-radius:999px;color:#f5f5f7;font-weight:600;letter-spacing:-.01em;background:rgba(255,255,255,.1)!important;-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);box-shadow:inset 0 .5px 0 rgba(255,255,255,.35)!important;transition:transform .35s cubic-bezier(.34,1.56,.64,1),background .25s!important}
 .chbtn:hover{background:rgba(255,255,255,.17)!important;transform:scale(1.04)}.chbtn:active{transform:scale(.94)}
 .chbtn .chi{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(160deg,#ffe86a,#ffc400);box-shadow:0 2px 8px rgba(255,196,0,.4),inset 0 1px 0 rgba(255,255,255,.55)}
-.chbtn .chi svg{width:18px;height:18px;filter:drop-shadow(0 1px 1px rgba(120,80,0,.35))}#start .rule{background:linear-gradient(90deg,transparent,rgba(255,224,60,.55) 20%,rgba(255,224,60,.55) 80%,transparent);box-shadow:0 0 12px rgba(255,220,40,.35)}
+.chbtn .chi svg{width:18px;height:18px;filter:drop-shadow(0 1px 1px rgba(120,80,0,.35))}
+.chbtn{width:42px;height:42px;padding:0!important;justify-content:center;gap:0}
+.chbtn>span:not(.chi){position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.chbtn .chi{width:42px;height:42px;border-radius:50%;background:linear-gradient(160deg,#ffe86a,#ffc400)}
+.chbtn .chi svg{width:22px;height:22px}
+.chbtn i{top:1px;right:1px}#start .rule{background:linear-gradient(90deg,transparent,rgba(255,224,60,.55) 20%,rgba(255,224,60,.55) 80%,transparent);box-shadow:0 0 12px rgba(255,220,40,.35)}
 #start .rule::after{background:linear-gradient(90deg,transparent,#fff7a8,#ffe23a,transparent)}
 #start h1{background-image:linear-gradient(180deg,#fffbd0,#ffec4d 55%,#ffd21a)!important;-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 0 18px rgba(255,220,40,.28))}#start .lead{max-width:none}
 
