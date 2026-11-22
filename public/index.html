@@ -912,6 +912,7 @@ body:has(#pan:not([hidden])) #toasts,body:has(#viewer:not([hidden])) #toasts{opa
 .tix.shut .tkc,.tix.shut .msg,.tixp.shut .tl2{display:none}
 .tix:not(.shut) .tkc,.tixp:not(.shut) .tl2{animation:tkopen .35s ease}
 @keyframes tkopen{from{opacity:.0;transform:translateY(-8px)}}
+.tlp .pill .hd{width:22px;height:22px;border-radius:5px;image-rendering:pixelated;margin-left:-4px;flex:none}
 </style>
 </head>
 <body>
@@ -1846,11 +1847,14 @@ document.querySelectorAll('.tkc button').forEach(function(b){b.addEventListener(
   catch(e){b.disabled=false;TIX.say=false;renderTix();tixSay('Das hat nicht geklappt. Versuch es gleich noch einmal.',true);}});});
 $('#tksave').addEventListener('click',async function(){if(!unlocked)return;SHOP.tix={ne:$('#tkan').checked,ow:$('#tkao').checked};var tn=function(v){return String(v).replace(/[^0-9]/g,'').slice(0,6);};SHOP.tixn=tn($('#tkn').value);SHOP.tixo=tn($('#tko').value);renderTix();
   try{await pushShop();savedOk();}catch(e){$('#shm2').className='msg err';$('#shm2').textContent='Speichern nicht möglich. '+why();}});
-function tixPubRender(list){var y=$('#tlyes'),n=$('#tlno');if(!y||!n)return;y.textContent='';n.textContent='';var have={};
-  list.forEach(function(x){have[ordKey(x.n)]=1;var p=eh('span','pill',x.n);[x.ne?'Nether':'',x.ow?'Oberwelt':''].filter(Boolean).forEach(function(w){p.appendChild(eh('i',null,w));});y.appendChild(p);});
+function hdImg(n){var im=document.createElement('img');im.className='hd';im.alt='';im.width=22;im.height=22;im.loading='lazy';im.src='https://minotar.net/helm/'+encodeURIComponent(n)+'/44.png';im.onerror=function(){im.remove();};return im;}
+function tixPill(n,tags){var p=eh('span','pill');p.appendChild(hdImg(n));p.appendChild(document.createTextNode(n));(tags||[]).forEach(function(w){p.appendChild(eh('i',null,w));});return p;}
+function tixPubRender(list){try{var y=$('#tlyes'),n=$('#tlno');if(!y||!n)return;y.textContent='';n.textContent='';var have={};if(!Array.isArray(list))list=[];
+  list=list.filter(function(x){return x&&typeof x.n==='string';});
+  list.forEach(function(x){have[ordKey(x.n)]=1;y.appendChild(tixPill(x.n,[x.ne?'Nether':'',x.ow?'Oberwelt':''].filter(Boolean)));});
   if(!list.length)y.appendChild(eh('span','e','Noch niemand.'));
-  var seen={},c=0;PLOTS.forEach(function(pl){pl.n.forEach(function(nm){var k=ordKey(nm);if(have[k]||seen[k])return;seen[k]=1;c++;n.appendChild(eh('span','pill',nm));});});
-  if(!c)n.appendChild(eh('span','e','Alle haben ein Ticket.'));}
+  var seen={},c=0;PLOTS.forEach(function(pl){pl.n.forEach(function(nm){var k=ordKey(nm);if(have[k]||seen[k])return;seen[k]=1;c++;n.appendChild(tixPill(nm));});});
+  if(!c)n.appendChild(eh('span','e','Alle haben ein Ticket.'));}catch(e){}}
 async function tixPubLoad(){try{var db=await dbq();if(!db)return;var sn=await db.doc('tixpub/main').get();tixPubRender(sn.exists?((sn.data()||{}).list||[]):[]);}catch(e){}}
 var TMAN=[];
 function tmRender(){var box=$('#tmlist');if(!box)return;box.textContent='';TMAN.forEach(function(x,i){var r=eh('div','it'),t=eh('div');t.appendChild(eh('b',null,x.n));t.appendChild(eh('small',null,' '+[x.ne?'Nether':'',x.ow?'Oberwelt':''].filter(Boolean).join(' & ')));r.appendChild(t);
