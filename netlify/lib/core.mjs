@@ -2,8 +2,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 const PUBLIC_READ = new Set(["done", "shop", "mapedit", "ostatus", "chat", "tixpub"]);
-const OWN_READ = new Set(["routes", "ratings", "orders", "notify", "dm", "dmr", "tix", "pro", "biz"]);
-const PLAYER_WRITE = new Set(["routes", "ratings", "orders", "chat", "dm", "tix", "pro", "biz"]);
+const OWN_READ = new Set(["routes", "ratings", "orders", "notify", "dm", "dmr", "tix", "pro", "biz", "korb"]);
+const PLAYER_WRITE = new Set(["routes", "ratings", "orders", "chat", "dm", "tix", "pro", "biz", "korb"]);
 const ALL = new Set([...PUBLIC_READ, ...OWN_READ]);
 const TOKEN_TTL = 12 * 3600 * 1000;
 const MAX_BODY = 400 * 1024;
@@ -57,6 +57,7 @@ async function rebuildTixPub(store) {
   } catch {}
 }
 
+const PIG_KEYS = ["eb","ib","fr","sf","wb","in","qz","gl","mc","ep","st","fc","gr","le","nb","ob","co","ss"];
 const str = (v, n) => typeof v === "string" && v.length <= n;
 
 // Prüft/bereinigt, was ein Spieler in sein eigenes Dokument schreiben darf.
@@ -92,6 +93,17 @@ function cleanPlayerDoc(col, d) {
       items.push({ d: x.d, at: x.at, st: "p" });
     }
     return { ign: d.ign, items };
+  }
+  if (col === "korb") {
+    if (!Array.isArray(d.list) || d.list.length > 10 || !NAME.test(d.ign || "")) return null;
+    const list = [];
+    for (const o of d.list) {
+      if (!o || !str(o.id, 40) || !Number.isFinite(o.at) || !Number.isInteger(o.offer) || o.offer < 1 || o.offer > 100000 || !Array.isArray(o.items) || !o.items.length || o.items.length > 18) return null;
+      const items = [];
+      for (const x of o.items) { if (!x || !PIG_KEYS.includes(x.k) || !Number.isInteger(x.n) || x.n < 1 || x.n > 576) return null; items.push({ k: x.k, n: x.n }); }
+      list.push({ id: o.id, at: o.at, items, offer: o.offer, st: "p" });
+    }
+    return { ign: d.ign, list };
   }
   if (col === "pro" || col === "biz") {
     if (!NAME.test(d.ign || "") || !Number.isFinite(d.at)) return null;
@@ -187,6 +199,11 @@ export async function handle(req, store, env) {
         if (p.col === "tix") {
           const prev = (await store.get(key)) || { items: [] };
           d.items = d.items.map((x) => { const o = (prev.items || []).find((y) => y.d === x.d && y.at === x.at); return { d: x.d, at: x.at, st: o ? (o.st || (o.h ? "ok" : "p")) : "p" }; });
+        }
+        if (p.col === "korb") {
+          const prev = (await store.get(key)) || { list: [] };
+          if (sh.pig === false && d.list.some((o) => !(prev.list || []).some((y) => y.id === o.id))) return res(403, { error: "Piglin Shop geschlossen" });
+          d.list = d.list.map((o) => { const y = (prev.list || []).find((q) => q.id === o.id); return y ? { id: o.id, at: o.at, items: o.items, offer: o.offer, st: y.st || "p", ...(y.ctr ? { ctr: y.ctr } : {}) } : o; });
         }
         if (p.col === "pro" || p.col === "biz") {
           const prev = (await store.get(key)) || {};
