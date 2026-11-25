@@ -998,6 +998,10 @@ body:has(#pan:not([hidden])) #toasts,body:has(#viewer:not([hidden])) #toasts{opa
 .homebtn span{display:none}.homebtn{padding:0!important;width:42px;height:42px;justify-content:center}.homebtn svg{width:20px;height:20px}
 .nav{backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important}
 .gt span{padding:7px!important}.gt span b{display:none!important}.gt svg{width:20px;height:20px}
+.gt span{cursor:default}.gt span .gl{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-weight:900;font-size:.72rem;color:#3a2a00}
+.gt span svg{opacity:.55}
+.gt span::after{content:attr(data-n);position:absolute;top:calc(100% + 10px);left:50%;transform:translate(-50%,-4px);padding:6px 12px;border-radius:10px;background:rgba(20,21,24,.95);color:#ffd60a;font-size:.8rem;font-weight:700;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;box-shadow:0 8px 24px rgba(0,0,0,.45);z-index:50}
+.gt span:hover::after,.gt span:focus-visible::after{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
@@ -1997,7 +2001,7 @@ function tixAdm(){var box=$('#tixadm');if(!box)return;tixSync();box.textContent=
     var rm=eh('button','act','Entfernen');rm.type='button';rm.addEventListener('click',async function(){rm.disabled=true;try{await chPut('tix/'+x.uid,function(d){return{ign:d.ign||x.n,items:(d.items||[]).filter(function(y){return y.d!==x.d;})};});chPoll();}catch(e){rm.disabled=false;}});it.appendChild(rm);box.appendChild(it);});}
 var GSVG='<svg viewBox="0 0 24 24" fill="none" stroke="#3a2a00" stroke-width="1.8" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z" fill="#fff6bf"/><path d="M14 7v10" stroke-dasharray="1.6 2"/></svg>';
 var GN={ne:'Nether',ow:'Overworld',pn:'Nether',po:'Overworld'};
-function tixGold(){var g=$('#gt');if(!g)return;g.textContent='';var any=false;var gdone={};TIX.mine.forEach(function(x){if(tixSt(x)!=='ok'||gdone[GN[x.d]])return;gdone[GN[x.d]]=1;any=true;var sp=eh('span');sp.title='Goldenes Ticket: '+(GN[x.d]||x.d);sp.setAttribute('aria-label',sp.title);sp.insertAdjacentHTML('beforeend',GSVG);sp.appendChild(eh('b',null,GN[x.d]||x.d));g.appendChild(sp);});g.hidden=!any;}
+function tixGold(){var g=$('#gt');if(!g)return;g.textContent='';var any=false;var gdone={};TIX.mine.forEach(function(x){if(tixSt(x)!=='ok'||gdone[GN[x.d]])return;gdone[GN[x.d]]=1;any=true;var sp=eh('span');var gnm=GN[x.d]||x.d;sp.dataset.n=gnm;sp.setAttribute('aria-label','Goldenes Ticket: '+gnm);sp.insertAdjacentHTML('beforeend',GSVG);sp.appendChild(eh('i','gl',gnm.charAt(0)));sp.tabIndex=0;g.appendChild(sp);});g.hidden=!any;}
 function tixNotify(){TIX.mine.forEach(function(x){var s=tixSt(x);if(s!=='ok'&&s!=='no')return;var k='t'+x.d+x.at+':'+s;if(seenN.indexOf(k)>-1||shownN[k])return;shownN[k]=1;var w=TKN[x.d]||x.d;
   showToast(k,s==='ok'?{state:'ok',title:'Dein Goldenes Ticket ('+w+') ist bestätigt',body:'Du findest es jetzt oben in der Ecke.'}:{state:'no',title:'Dein Ticket ('+w+') wurde abgelehnt',body:'Du kannst es gern noch einmal versuchen.'});});}
 async function tixLoad(){var c=await cloud();if(!c)return;try{var sn=await c.db.doc('tix/'+c.id).get();TIX.mine=sn.exists?((sn.data()||{}).items||[]):[];}catch(e){}renderTix();tixNotify();}
