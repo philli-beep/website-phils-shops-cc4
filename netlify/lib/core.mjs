@@ -116,7 +116,7 @@ function cleanPlayerDoc(col, d) {
       for (const x of o.items) { if (!x || !PIG_KEYS.includes(x.k) || !Number.isInteger(x.n) || x.n < 1 || x.n > 576) return null; items.push({ k: x.k, n: x.n }); }
       const msgs = [];
       for (const m of (Array.isArray(o.msgs) ? o.msgs : []).slice(-40)) { if (m && m.f === "p" && str(m.id, 40) && str(m.t, 200) && m.t.trim() && Number.isFinite(m.at)) msgs.push({ id: m.id, t: m.t, at: m.at, f: "p" }); }
-      list.push({ id: o.id, at: o.at, items, offer: o.offer, st: "p", msgs });
+      list.push({ id: o.id, at: o.at, items, offer: o.offer, st: "p", msgs, acc: o.acc === true });
     }
     return { ign: d.ign, list };
   }
@@ -226,7 +226,7 @@ export async function handle(req, store, env) {
         if (p.col === "korb") {
           const prev = (await store.get(key)) || { list: [] };
           if (sh.pig === false && d.list.some((o) => !(prev.list || []).some((y) => y.id === o.id))) return res(403, { error: "Piglin Shop geschlossen" });
-          d.list = d.list.map((o) => { const y = (prev.list || []).find((q) => q.id === o.id); if (!y) return o; const am = (y.msgs || []).filter((m) => m.f === "a"); const msgs = am.concat(o.msgs).sort((a, b) => a.at - b.at).slice(-60); return { id: o.id, at: o.at, items: o.items, offer: o.offer, st: y.st || "p", ...(y.ctr ? { ctr: y.ctr } : {}), msgs }; });
+          d.list = d.list.map((o) => { const y = (prev.list || []).find((q) => q.id === o.id); if (!y) { delete o.acc; return o; } let st = y.st || "p", offer = y.offer, ctr = y.ctr; if (o.acc === true && st === "c" && y.ctr) { st = "ok"; offer = y.ctr; ctr = undefined; } const am = (y.msgs || []).filter((m) => m.f === "a"); const msgs = am.concat(o.msgs).sort((a, b) => a.at - b.at).slice(-60); return { id: o.id, at: o.at, items: o.items, offer, st, ...(ctr ? { ctr } : {}), msgs }; });
         }
         if (p.col === "pro" || p.col === "biz") {
           const prev = (await store.get(key)) || {};
