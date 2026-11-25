@@ -31,7 +31,7 @@ export default async (req) => {
       token: auth.startsWith("Bearer ") ? auth.slice(7) : "",
     },
     adapter(),
-    { ADMIN_PASSWORD: process.env.ADMIN_PASSWORD, TOKEN_SECRET: process.env.TOKEN_SECRET },
+    { ADMIN_PASSWORD: process.env.ADMIN_PASSWORD, TOKEN_SECRET: process.env.TOKEN_SECRET, PIGLIN_PASSWORD: process.env.PIGLIN_PASSWORD },
   );
   if (route === "login" && out.status === 401) await new Promise((r) => setTimeout(r, 800));
   return new Response(JSON.stringify(out.json), {

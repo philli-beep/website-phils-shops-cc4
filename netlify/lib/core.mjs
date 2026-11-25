@@ -19,6 +19,19 @@ export function makeToken(env, now = Date.now()) {
   const sig = createHmac("sha256", secretOf(env)).update(exp).digest("hex");
   return exp + "." + sig;
 }
+export function makePgToken(env, now = Date.now()) {
+  const exp = String(now + TOKEN_TTL);
+  const sig = createHmac("sha256", (env.TOKEN_SECRET || "") + "|" + (env.PIGLIN_PASSWORD || "") + "|phils-shops-pg").update("pg" + exp).digest("hex");
+  return exp + ".pg." + sig;
+}
+export function checkPgToken(env, token, now = Date.now()) {
+  if (!env.PIGLIN_PASSWORD || !token || typeof token !== "string") return false;
+  const [exp, tag, sig] = token.split(".");
+  if (!exp || tag !== "pg" || !sig || Number(exp) < now) return false;
+  const want = createHmac("sha256", (env.TOKEN_SECRET || "") + "|" + env.PIGLIN_PASSWORD + "|phils-shops-pg").update("pg" + exp).digest("hex");
+  const a = Buffer.from(sig), b = Buffer.from(want);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
 export function checkToken(env, token, now = Date.now()) {
   if (!token || typeof token !== "string") return false;
   const [exp, sig] = token.split(".");
@@ -137,21 +150,23 @@ function cleanPlayerDoc(col, d) {
 export async function handle(req, store, env) {
   if (!env.ADMIN_PASSWORD) return res(500, { error: "ADMIN_PASSWORD ist nicht gesetzt" });
   const admin = checkToken(env, req.token);
+  const pg = !admin && checkPgToken(env, req.token);
   const uid = /^[a-f0-9]{16,64}$/.test(req.uid || "") ? req.uid : "";
 
   if (req.route === "login") {
     if (req.method !== "POST") return res(405, { error: "method" });
     let b; try { b = JSON.parse(req.body || "{}"); } catch { return res(400, { error: "json" }); }
-    if (typeof b.password === "string" && samePw(b.password, env.ADMIN_PASSWORD)) return res(200, { token: makeToken(env) });
+    if (typeof b.password === "string" && samePw(b.password, env.ADMIN_PASSWORD)) return res(200, { token: makeToken(env), scope: "admin" });
+    if (typeof b.password === "string" && env.PIGLIN_PASSWORD && samePw(b.password, env.PIGLIN_PASSWORD)) return res(200, { token: makePgToken(env), scope: "pg" });
     return res(401, { error: "Falsches Passwort" });
   }
-  if (req.route === "ping") return res(200, { ok: true, admin });
+  if (req.route === "ping") return res(200, { ok: true, admin, pg });
 
   if (req.route === "col") {
     if (req.method !== "GET") return res(405, { error: "method" });
     const p = parsePath(req.path);
     if (!p || p.id) return res(400, { error: "path" });
-    if (!PUBLIC_READ.has(p.col) && !admin) return res(403, { error: "keine Rechte" });
+    if (!PUBLIC_READ.has(p.col) && !admin && !(pg && p.col === "korb")) return res(403, { error: "keine Rechte" });
     const keys = (await store.list(p.col + "/")).slice(0, 500);
     const docs = [];
     for (const k of keys) { const data = await store.get(k); if (data != null) docs.push({ id: k.slice(p.col.length + 1), data }); }
@@ -163,17 +178,23 @@ export async function handle(req, store, env) {
     if (!p || !p.id) return res(400, { error: "path" });
     const key = p.col + "/" + p.id;
     if (req.method === "GET") {
-      const ok = admin || PUBLIC_READ.has(p.col) || (OWN_READ.has(p.col) && uid && p.id === uid);
+      const ok = admin || (pg && p.col === "korb") || PUBLIC_READ.has(p.col) || (OWN_READ.has(p.col) && uid && p.id === uid);
       if (!ok) return res(403, { error: "keine Rechte" });
       return res(200, { data: (await store.get(key)) ?? null });
     }
     if (req.method === "PUT" || req.method === "DELETE") {
       const own = uid && p.id === uid && PLAYER_WRITE.has(p.col);
-      if (!admin && !own) return res(403, { error: "keine Rechte" });
+      if (pg && key === "shop/status" && req.method === "PUT") {
+        let nd; try { nd = JSON.parse(req.body || "null"); } catch { return res(400, { error: "json" }); }
+        if (!nd || typeof nd.pig !== "boolean") return res(400, { error: "ungültig" });
+        const cur = (await store.get(key)) || {}; cur.pig = nd.pig; await store.set(key, cur); return res(200, { ok: true });
+      }
+      const priv = admin || (pg && p.col === "korb");
+      if (!priv && !own) return res(403, { error: "keine Rechte" });
       if (req.method === "DELETE") { await store.del(key); if (p.col === "tix") await rebuildTixPub(store); return res(200, { ok: true }); }
       if ((req.body || "").length > MAX_BODY) return res(413, { error: "zu groß" });
       let d; try { d = JSON.parse(req.body || "null"); } catch { return res(400, { error: "json" }); }
-      if (!admin) {
+      if (!priv) {
         const sh = (await store.get("shop/status")) || {};
         const prevD = (await store.get(key)) || {}; const shrink = (Array.isArray(d && d.list) ? d.list.length < (prevD.list || []).length : false) || (Array.isArray(d && d.subs) ? d.subs.length < (prevD.subs || []).length : false);
         if (p.col === "orders" && !sh.open && !shrink) return res(403, { error: "XP Shop geschlossen" });
