@@ -101,7 +101,9 @@ function cleanPlayerDoc(col, d) {
       if (!o || !str(o.id, 40) || !Number.isFinite(o.at) || !Number.isInteger(o.offer) || o.offer < 1 || o.offer > 100000 || !Array.isArray(o.items) || !o.items.length || o.items.length > 18) return null;
       const items = [];
       for (const x of o.items) { if (!x || !PIG_KEYS.includes(x.k) || !Number.isInteger(x.n) || x.n < 1 || x.n > 576) return null; items.push({ k: x.k, n: x.n }); }
-      list.push({ id: o.id, at: o.at, items, offer: o.offer, st: "p" });
+      const msgs = [];
+      for (const m of (Array.isArray(o.msgs) ? o.msgs : []).slice(-40)) { if (m && m.f === "p" && str(m.id, 40) && str(m.t, 200) && m.t.trim() && Number.isFinite(m.at)) msgs.push({ id: m.id, t: m.t, at: m.at, f: "p" }); }
+      list.push({ id: o.id, at: o.at, items, offer: o.offer, st: "p", msgs });
     }
     return { ign: d.ign, list };
   }
@@ -203,7 +205,7 @@ export async function handle(req, store, env) {
         if (p.col === "korb") {
           const prev = (await store.get(key)) || { list: [] };
           if (sh.pig === false && d.list.some((o) => !(prev.list || []).some((y) => y.id === o.id))) return res(403, { error: "Piglin Shop geschlossen" });
-          d.list = d.list.map((o) => { const y = (prev.list || []).find((q) => q.id === o.id); return y ? { id: o.id, at: o.at, items: o.items, offer: o.offer, st: y.st || "p", ...(y.ctr ? { ctr: y.ctr } : {}) } : o; });
+          d.list = d.list.map((o) => { const y = (prev.list || []).find((q) => q.id === o.id); if (!y) return o; const am = (y.msgs || []).filter((m) => m.f === "a"); const msgs = am.concat(o.msgs).sort((a, b) => a.at - b.at).slice(-60); return { id: o.id, at: o.at, items: o.items, offer: o.offer, st: y.st || "p", ...(y.ctr ? { ctr: y.ctr } : {}), msgs }; });
         }
         if (p.col === "pro" || p.col === "biz") {
           const prev = (await store.get(key)) || {};
